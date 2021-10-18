@@ -1,0 +1,15 @@
+[submodule "firmware/k3ng_cw_keyer"]
+	path = firmware/k3ng_cw_keyer
+	url = https://github.com/softerhardware/k3ng_cw_keyer.git
+[submodule "firmware/hasak"]
+	path = firmware/hasak
+	url = https://github.com/recri/hasak.git
+[submodule "firmware/TeensyWinkeyEmulator"]
+	path = firmware/TeensyWinkeyEmulator
+	url = https://github.com/dl1ycf/TeensyWinkeyEmulator.git
+[submodule "libraries/teensy/cores"]
+	path = libraries/teensy/cores
+	url = https://github.com/softerhardware/cores.git
+[submodule "libraries/teensy/Audio"]
+	path = libraries/teensy/Audio
+	url = https://github.com/softerhardware/Audio.git

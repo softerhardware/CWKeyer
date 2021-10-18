@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name TeensyKeyerShield)(type Legacy)(uri ${KIPRJMOD}/libs/TeensyKeyerShield.lib)(options "")(descr ""))
+)

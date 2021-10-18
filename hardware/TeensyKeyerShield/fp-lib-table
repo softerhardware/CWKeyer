@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name TeensyKeyerShield)(type KiCad)(uri ${KIPRJMOD}/libs/TeensyKeyerShield.pretty)(options "")(descr ""))
+)
