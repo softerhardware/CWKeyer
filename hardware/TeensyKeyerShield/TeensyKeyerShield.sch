@@ -5,7 +5,7 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 3
 Title "Teensy CW Keyer Shield"
-Date "2021-10-17"
+Date "2021-10-25"
 Rev "1.0"
 Comp "SofterHardware"
 Comment1 "KF7O Steve Haynal"

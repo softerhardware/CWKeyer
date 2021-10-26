@@ -5,7 +5,7 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 2 3
 Title "Teensy CW Keyer Shield"
-Date "2021-10-17"
+Date "2021-10-25"
 Rev "1.0"
 Comp "SofterHardware"
 Comment1 "KF7O Steve Haynal"
@@ -1134,7 +1134,7 @@ U 1 1 60B82BBA
 P 4400 3300
 F 0 "TP1" V 4400 3488 50  0000 L CNN
 F 1 "TestPoint" V 4445 3488 50  0001 L CNN
-F 2 "TestPoint:TestPoint_Pad_D4.0mm" H 4600 3300 50  0001 C CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4600 3300 50  0001 C CNN
 F 3 "~" H 4600 3300 50  0001 C CNN
 	1    4400 3300
 	0    1    1    0   
@@ -1145,7 +1145,7 @@ U 1 1 60B85109
 P 4400 5750
 F 0 "TP2" V 4400 5938 50  0000 L CNN
 F 1 "TestPoint" V 4445 5938 50  0001 L CNN
-F 2 "TestPoint:TestPoint_Pad_D4.0mm" H 4600 5750 50  0001 C CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4600 5750 50  0001 C CNN
 F 3 "~" H 4600 5750 50  0001 C CNN
 	1    4400 5750
 	0    1    1    0   
