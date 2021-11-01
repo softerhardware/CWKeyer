@@ -941,7 +941,7 @@ F 3 "" H 6450 2850 50  0001 C CNN
 	1    6450 2850
 	0    1    1    0   
 $EndComp
-Text GLabel 5800 2350 0    50   Output ~ 0
+Text GLabel 6150 2350 0    50   Output ~ 0
 MICPTT
 Text GLabel 6450 3850 0    50   Output ~ 0
 JACKDET
@@ -977,44 +977,29 @@ Connection ~ 3400 2450
 Wire Wire Line
 	3400 2450 4350 2450
 $Comp
-L Jumper:Jumper_3_Open JP1
-U 1 1 60AB789F
-P 5900 3050
-F 0 "JP1" H 5700 2950 50  0000 L CNN
-F 1 "Jumper_3_Open" V 5945 3137 50  0001 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5900 3050 50  0001 C CNN
-F 3 "~" H 5900 3050 50  0001 C CNN
-	1    5900 3050
-	1    0    0    -1  
-$EndComp
-$Comp
 L Device:Ferrite_Bead_Small FB7
 U 1 1 60ADBC32
-P 5900 2550
-F 0 "FB7" H 5800 2500 50  0000 C CNN
-F 1 "Ferrite_Bead_Small" V 5754 2550 50  0001 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" V 5830 2550 50  0001 C CNN
-F 3 "~" H 5900 2550 50  0001 C CNN
-F 4 "C76892" H 5900 2550 50  0001 C CNN "LCSC"
-	1    5900 2550
+P 6250 2550
+F 0 "FB7" H 6150 2500 50  0000 C CNN
+F 1 "Ferrite_Bead_Small" V 6104 2550 50  0001 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" V 6180 2550 50  0001 C CNN
+F 3 "~" H 6250 2550 50  0001 C CNN
+F 4 "C76892" H 6250 2550 50  0001 C CNN "LCSC"
+	1    6250 2550
 	-1   0    0    1   
 $EndComp
-Wire Wire Line
-	5450 3950 5900 3950
-Wire Wire Line
-	5450 3750 5800 3750
 Connection ~ 5450 3750
 $Comp
 L Power_Protection:SP0503BAHT D1
 U 1 1 60B0E442
 P 5800 4200
-F 0 "D1" H 6005 4246 50  0000 L CNN
-F 1 "SP0503BAHTG" H 6005 4155 50  0000 L CNN
+F 0 "D1" H 5450 4250 50  0000 L CNN
+F 1 "SP0503BAHTG" H 5050 4150 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-143" H 6025 4150 50  0001 L CNN
 F 3 "http://www.littelfuse.com/~/media/files/littelfuse/technical%20resources/documents/data%20sheets/sp05xxba.pdf" H 5925 4325 50  0001 C CNN
 F 4 "C2682275" H 5800 4200 50  0001 C CNN "LCSC"
 	1    5800 4200
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR015
@@ -1027,16 +1012,6 @@ F 3 "" H 5800 4400 50  0001 C CNN
 	1    5800 4400
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5800 4000 5800 3750
-Connection ~ 5800 3750
-Wire Wire Line
-	5800 3750 6500 3750
-Wire Wire Line
-	5900 4000 5900 3950
-Connection ~ 5900 3950
-Wire Wire Line
-	5900 3950 6500 3950
 Wire Wire Line
 	5400 3550 5400 3650
 Wire Wire Line
@@ -1314,47 +1289,12 @@ Connections to Teensy
 Text Notes 7300 1500 0    50   ~ 0
 MEMS Microphone\nSAO-3729-M-42-008
 NoConn ~ 6500 4050
-$Comp
-L Jumper:Jumper_3_Open JP2
-U 1 1 60FBD580
-P 5900 2850
-F 0 "JP2" H 5950 2750 50  0000 L CNN
-F 1 "Jumper_3_Open" V 5945 2937 50  0001 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5900 2850 50  0001 C CNN
-F 3 "~" H 5900 2850 50  0001 C CNN
-	1    5900 2850
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	5400 3000 5400 3250
-Wire Wire Line
-	6500 2950 5650 2950
-Wire Wire Line
-	5650 2950 5650 3050
-Wire Wire Line
-	5650 2850 5650 2950
-Connection ~ 5650 2950
-Wire Wire Line
-	6150 2850 6250 2850
-Wire Wire Line
-	6250 2850 6250 3050
-Wire Wire Line
-	6250 3050 6150 3050
 Wire Wire Line
 	6500 2850 6450 2850
 Wire Wire Line
-	5900 3200 5900 3250
+	6250 2450 6250 2350
 Wire Wire Line
-	5900 3250 5400 3250
-Connection ~ 5400 3250
-Wire Wire Line
-	5400 3250 5400 3550
-Wire Wire Line
-	5900 2650 5900 2700
-Wire Wire Line
-	5900 2450 5900 2350
-Wire Wire Line
-	5900 2350 5800 2350
+	6250 2350 6150 2350
 $Comp
 L Connector:AudioJack3_SwitchTR J6
 U 1 1 616B0C0E
@@ -1366,11 +1306,6 @@ F 3 "~" H 6700 2950 50  0001 C CNN
 	1    6700 2950
 	-1   0    0    -1  
 $EndComp
-Wire Wire Line
-	6500 3150 6250 3150
-Wire Wire Line
-	6250 3150 6250 3050
-Connection ~ 6250 3050
 NoConn ~ 6500 3050
 NoConn ~ 6500 3250
 $Comp
@@ -1544,4 +1479,58 @@ Wire Wire Line
 	5950 1650 6400 1650
 Text Notes 7350 5300 0    50   ~ 0
 L1/C16 and similar form 2nd order butterworth filter\nat 60kHz to reduce EMI per reference designs. L1 can\nbe omitted and C16 forms a 1st order butterworth filter.\nUse only C16 and similar of 470nF for 85kHz cutoff.\nFerrite beads and 33pF capacitors are to reduce higher\nfrequency RF EMI per datasheet and reference designs.\n
+$Comp
+L Connector_Generic:Conn_02x03_Odd_Even JP1
+U 1 1 61804499
+P 5950 3050
+F 0 "JP1" H 6000 3300 50  0000 C CNN
+F 1 "Conn_02x03_Odd_Even" H 6000 3276 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 5950 3050 50  0001 C CNN
+F 3 "~" H 5950 3050 50  0001 C CNN
+	1    5950 3050
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 3000 5400 3050
+Wire Wire Line
+	6150 3150 6500 3150
+Wire Wire Line
+	6500 2950 6150 2950
+Wire Wire Line
+	6250 3050 6150 3050
+Wire Wire Line
+	6250 2650 6250 3050
+Wire Wire Line
+	5650 3050 5400 3050
+Connection ~ 5400 3050
+Wire Wire Line
+	5400 3050 5400 3550
+Wire Wire Line
+	5650 2950 5650 2850
+Wire Wire Line
+	5650 2850 6150 2850
+Wire Wire Line
+	6150 2850 6150 2950
+Connection ~ 6150 2950
+Wire Wire Line
+	6150 3150 6150 3250
+Wire Wire Line
+	6150 3250 5650 3250
+Wire Wire Line
+	5650 3250 5650 3150
+Connection ~ 6150 3150
+Wire Wire Line
+	5450 3950 5800 3950
+Wire Wire Line
+	5900 4000 5900 3750
+Connection ~ 5900 3750
+Wire Wire Line
+	5900 3750 6500 3750
+Wire Wire Line
+	5450 3750 5900 3750
+Wire Wire Line
+	5800 4000 5800 3950
+Connection ~ 5800 3950
+Wire Wire Line
+	5800 3950 6500 3950
 $EndSCHEMATC

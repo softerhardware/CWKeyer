@@ -161,15 +161,11 @@ U 1 1 60BA2067
 P 3250 5600
 F 0 "J10" H 3450 5400 50  0000 C CNN
 F 1 "Conn_01x04" H 3330 5501 50  0001 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 3250 5600 50  0001 C CNN
+F 2 "Connector_JST:JST_PH_B4B-PH-K_1x04_P2.00mm_Vertical" H 3250 5600 50  0001 C CNN
 F 3 "~" H 3250 5600 50  0001 C CNN
 	1    3250 5600
 	-1   0    0    -1  
 $EndComp
-Wire Wire Line
-	3450 5600 3850 5600
-Wire Wire Line
-	3450 5500 3950 5500
 $Comp
 L power:+3.3V #PWR037
 U 1 1 60BB097D
@@ -195,17 +191,15 @@ $EndComp
 Wire Wire Line
 	3450 5700 3500 5700
 Wire Wire Line
-	3950 5800 3950 5500
-Connection ~ 3950 5500
+	3950 5800 3950 5550
 Wire Wire Line
 	3950 5500 4600 5500
 Wire Wire Line
 	3850 5800 3850 5600
-Connection ~ 3850 5600
 Wire Wire Line
 	3850 5600 4600 5600
-Text Notes 3000 6100 0    50   ~ 0
-Optional 128x32\nSSD1306 display\nor other i2c device
+Text Notes 3000 6200 0    50   ~ 0
+Optional 128x32\nSSD1306 display\nor other i2c device\nJST PH Stemma
 Wire Wire Line
 	4600 3100 4550 3100
 Wire Wire Line
@@ -794,20 +788,20 @@ Wire Wire Line
 $Comp
 L Device:R_Small R11
 U 1 1 60E962D0
-P 3850 3800
+P 3850 3700
 F 0 "R11" V 3950 3700 50  0000 C CNN
-F 1 "470" V 3850 3800 39  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" H 3850 3800 50  0001 C CNN
-F 3 "~" H 3850 3800 50  0001 C CNN
-F 4 "C23179" H 3850 3800 50  0001 C CNN "LCSC"
-	1    3850 3800
+F 1 "470" V 3850 3700 39  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" H 3850 3700 50  0001 C CNN
+F 3 "~" H 3850 3700 50  0001 C CNN
+F 4 "C23179" H 3850 3700 50  0001 C CNN "LCSC"
+	1    3850 3700
 	0    1    1    0   
 $EndComp
 $Comp
 L Device:R_Small R10
 U 1 1 60E982EE
 P 3850 3600
-F 0 "R10" V 3950 3500 50  0000 C CNN
+F 0 "R10" V 3750 3600 50  0000 C CNN
 F 1 "470" V 3850 3600 39  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" H 3850 3600 50  0001 C CNN
 F 3 "~" H 3850 3600 50  0001 C CNN
@@ -820,15 +814,9 @@ Wire Wire Line
 Wire Wire Line
 	3750 3200 3500 3200
 Wire Wire Line
-	3750 3800 3650 3800
-Wire Wire Line
-	3650 3800 3650 3550
-Wire Wire Line
 	3650 3550 3500 3550
 Wire Wire Line
 	3950 3600 4600 3600
-Wire Wire Line
-	4600 3800 3950 3800
 Wire Wire Line
 	3950 3500 3950 2500
 Wire Wire Line
@@ -1108,15 +1096,11 @@ Wire Wire Line
 Wire Wire Line
 	2900 4500 2950 4500
 Wire Wire Line
-	4000 3700 4000 3950
-Wire Wire Line
 	4000 3950 2700 3950
 Wire Wire Line
 	2700 3950 2700 4200
 Wire Wire Line
 	2700 4200 2950 4200
-Wire Wire Line
-	4000 3700 4600 3700
 $Comp
 L power:GND #PWR046
 U 1 1 60C02267
@@ -1151,4 +1135,28 @@ Wire Wire Line
 	4450 3200 4450 1650
 Wire Wire Line
 	4450 1650 5750 1650
+Wire Wire Line
+	3750 3700 3650 3700
+Wire Wire Line
+	3650 3700 3650 3550
+Wire Wire Line
+	3950 3700 4600 3700
+Wire Wire Line
+	4600 3800 4000 3800
+Wire Wire Line
+	4000 3800 4000 3950
+Wire Wire Line
+	3850 5600 3850 5500
+Wire Wire Line
+	3850 5500 3450 5500
+Connection ~ 3850 5600
+Wire Wire Line
+	3450 5600 3500 5600
+Wire Wire Line
+	3500 5600 3500 5550
+Wire Wire Line
+	3500 5550 3950 5550
+Connection ~ 3950 5550
+Wire Wire Line
+	3950 5550 3950 5500
 $EndSCHEMATC
