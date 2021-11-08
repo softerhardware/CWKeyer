@@ -4,9 +4,9 @@ EELAYER END
 $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 3
-Title "CW Keyer Shield"
-Date "2021-11-05"
-Rev "1.0"
+Title "SofterHardware CW Keyer"
+Date "2021-11-07"
+Rev "0.9"
 Comp "SofterHardware"
 Comment1 "KF7O Steve Haynal"
 Comment2 ""
