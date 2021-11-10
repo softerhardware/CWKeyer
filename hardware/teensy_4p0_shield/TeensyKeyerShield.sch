@@ -5,8 +5,8 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 3
 Title "SofterHardware CW Keyer"
-Date "2021-11-07"
-Rev "0.9"
+Date "2021-11-09"
+Rev "0.91"
 Comp "SofterHardware"
 Comment1 "KF7O Steve Haynal"
 Comment2 ""

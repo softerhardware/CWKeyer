@@ -5,8 +5,8 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 2 3
 Title "SofterHardware CW Keyer"
-Date "2021-11-07"
-Rev "0.9"
+Date "2021-11-09"
+Rev "0.91"
 Comp "SofterHardware"
 Comment1 "KF7O Steve Haynal"
 Comment2 ""
@@ -1138,7 +1138,7 @@ F 1 "MEMSMIC" H 7550 2724 50  0001 C CNN
 F 2 "TeensyKeyerShield:MEMSMIC" H 7550 2100 50  0001 C CNN
 F 3 "" H 7550 2100 50  0001 C CNN
 	1    7550 2100
-	1    0    0    -1  
+	-1   0    0    -1  
 $EndComp
 $Comp
 L Device:C_Small C25
