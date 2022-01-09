@@ -1,6 +1,3 @@
-[submodule "firmware/k3ng_cw_keyer"]
-	path = firmware/k3ng_cw_keyer
-	url = https://github.com/softerhardware/k3ng_cw_keyer.git
 [submodule "firmware/hasak"]
 	path = firmware/hasak
 	url = https://github.com/recri/hasak.git
