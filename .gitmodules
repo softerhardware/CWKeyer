@@ -3,7 +3,7 @@
 	url = https://github.com/recri/hasak.git
 [submodule "firmware/TeensyWinkeyEmulator"]
 	path = firmware/TeensyWinkeyEmulator
-	url = https://github.com/softerhardware/TeensyWinkeyEmulator.git
+	url = https://github.com/dl1ycf/TeensyWinkeyEmulator.git
 [submodule "libraries/teensy/cores"]
 	path = libraries/teensy/cores
 	url = https://github.com/softerhardware/cores.git
