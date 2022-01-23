@@ -48,7 +48,8 @@ Updated libraries are required for glitchless 48kHz audio with the CW keyer hard
  3. ln -s /home/shaynal/CWKeyer/libraries/teensy/cores .   (Substitute the path for your local git pull of the CWKeyer repository)
  4. cd libraries
  5. rm -rf Audio   (See step 2 comments)
- 6. ln -s /home/shaynal/CWKeyer/libraries/teensy/Audio .   (Sett step 3 comments)
+ 6. ln -s /home/shaynal/CWKeyer/libraries/teensy/Audio .   (See step 3 comments)
+ 7. ln -s /home/shaynal/CWKeyer/libraries/teensy/CWKeyerShield .   (See step 3 comments)
 
 
 
