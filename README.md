@@ -41,7 +41,10 @@ You can find more details about how to work with git submodules on the internet.
 
 Current development is done using [Arduino IDE 1.8.19](https://www.arduino.cc/en/software) and [Teensyduino 1.56](https://www.pjrc.com/teensy/td_download.html). Please make sure those are installed.
 
-Updated libraries are required for glitchless 48kHz audio with the CW keyer hardware. These libraries are provided in this git repository. An easy way to use these libraries is to add symbolic links to the new libraries from the arduino IDE install. For linux:
+Updated libraries are required for glitchless 48kHz audio with the CW keyer hardware. These libraries are provided in this git repository. An easy way to use these libraries is to add symbolic links to the new libraries from the arduino IDE install.
+
+Install teensy  library update for linux:
+-----------------------------------------
 
  1. cd arduino-1.8.19/hardware/teensy/avr
  2. rm -rf cores   (This must be removed or moved outside of the arduino-1.8.19 area otherwise arduino will still pickup this code)
@@ -51,7 +54,27 @@ Updated libraries are required for glitchless 48kHz audio with the CW keyer hard
  6. ln -s /home/shaynal/CWKeyer/libraries/teensy/Audio .   (See step 3 comments)
  7. ln -s /home/shaynal/CWKeyer/libraries/teensy/CWKeyerShield .   (See step 3 comments)
 
+Install teensy library update for MacOS:
+----------------------------------------
 
+(Added by DL1YCF. Note this is best done from the "terminal" app, then this is very similar to the
+linux case).
+
+All the libraries are inside the Arduino "app" file bundle (which is a directory tree)
+/Applications/Arduino.app. Locate a sub-folder called "Audio", this will point you to
+the libraries for the Teensy. Normally this is located in
+
+/Applications/Arduino.app/Contents/Java/hardware/teensy/avr/libraries
+
+You can copy the "Audio" folder within that folder to a safe place (or just delete it),
+and do the same to the "cores" folder one step higher, that is, the "cores" folder within
+
+/Applications/Arduino.app/Contents/Java/hardware/teensy/avr
+
+Then proceed as in the linux case, that is, add a symbolic link named "cores" in the .../teensy/avr
+folder and two symbolic links called "Audio" and "CWKeyerShield" in the
+.../teensy/avr/libraries folder, that point to the directories "Audio", "cores" and
+"CWKeyerShield" where you have placed them after down-loading from this repository.
 
 
 
