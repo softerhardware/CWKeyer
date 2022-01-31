@@ -175,17 +175,18 @@ void CWKeyerShield::midi(void)
                     midi_ptt_in_note = data;
                     break;
 
+                // There is currently no way to disable the note once set
                 case MIDI_CWPTT_NOTE:
                     midi_cwptt_note = data;
                     break;
 
-                case MIDI_SPEED_CTRL:
-                    midi_speed_ctrl = data;
-                    break;
+                //case MIDI_SPEED_CTRL:
+                //    midi_speed_ctrl = data;
+                //    break;
 
-                case MIDI_FREQ_CTRL:
-                    midi_freq_ctrl = data;
-                    break;
+                //case MIDI_FREQ_CTRL:
+                //    midi_freq_ctrl = data;
+                //    break;
 
                 case MIDI_RESPONSE:
                     midi_response = data;
@@ -549,7 +550,7 @@ void CWKeyerShield::mastervolume(uint16_t level)
     if (level < 33) level = 0;
 
     if (midi_response) {
-        usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, (level>>6)&0x7f, midi_rx_ch); // send to MIDI controller
+        usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, (level>>6)&0x7f, midi_tx_ch); // send to MIDI controller
     }
     if (sgtl5000) {
         sgtl5000->volume(((float)level)/8191.0);
@@ -568,7 +569,7 @@ void CWKeyerShield::sidetonevolume(uint16_t level)
     // simulated.
     //
     if (midi_response) {
-        usbMIDI.sendControlChange(MIDI_SIDETONE_VOLUME, (level>>6)&0x7f, midi_rx_ch); // send to MIDI controller
+        usbMIDI.sendControlChange(MIDI_SIDETONE_VOLUME, (level>>6)&0x7f, midi_tx_ch); // send to MIDI controller
     }
     // Reduce to 5 bits
     level = (level >> 8) & 0x1f;
@@ -580,15 +581,15 @@ void CWKeyerShield::sidetonefrequency(uint16_t freq)
 {
     sine.frequency( 250+((float)freq)/8.0 );
 
-    if (midi_freq_ctrl >= 0 && midi_tx_ch > 0) {
-        //
-        // In the radio, the frequency has to be calculated as
-        // freq = 250 + 8*val, where val is the controller value 0<= val <= 127
-        //
-        usbMIDI.sendControlChange(midi_freq_ctrl, (freq>>6)&0x7f, midi_tx_ch); // send  to radio
-    }
+    //if (midi_freq_ctrl >= 0 && midi_tx_ch > 0) {
+    //    //
+    //    // In the radio, the frequency has to be calculated as
+    //    // freq = 250 + 8*val, where val is the controller value 0<= val <= 127
+    //    //
+    //    usbMIDI.sendControlChange(midi_freq_ctrl, (freq>>6)&0x7f, midi_tx_ch); // send  to radio
+    //}
     if (midi_response) {
-        usbMIDI.sendControlChange(MIDI_SIDETONE_FREQUENCY, (freq>>6)&0x7f, midi_rx_ch); // send to MIDI controller
+        usbMIDI.sendControlChange(MIDI_SIDETONE_FREQUENCY, (freq>>6)&0x7f, midi_tx_ch); // send to MIDI controller
     }
 }
 
@@ -598,14 +599,14 @@ void CWKeyerShield::cwspeed(uint16_t speed)
     if (speed == 0) speed = 1;
     if (speed > 127) speed = 127;
 
-    if (midi_speed_ctrl >= 0 && midi_tx_ch > 0) {
-        //
-        // In the radio, the controller value (1 <= val <= 127) encodes the speed
-        //
-        usbMIDI.sendControlChange(midi_speed_ctrl, speed&0x7f, midi_tx_ch);  // send to radio
-    }
+    //if (midi_speed_ctrl >= 0 && midi_tx_ch > 0) {
+    //    //
+    //    // In the radio, the controller value (1 <= val <= 127) encodes the speed
+    //    //
+    //    usbMIDI.sendControlChange(midi_speed_ctrl, speed&0x7f, midi_tx_ch);  // send to radio
+    //}
     if (midi_response) {
-        usbMIDI.sendControlChange(MIDI_CW_SPEED, speed&0x7f, midi_rx_ch);    // send to MIDI controller
+        usbMIDI.sendControlChange(MIDI_CW_SPEED, speed&0x7f, midi_tx_ch);    // send to MIDI controller
     }
  }
 

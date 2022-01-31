@@ -62,8 +62,8 @@ enum midi_control_selection {
   MIDI_PTT_MIC_NOTE        = 19,
   MIDI_PTT_IN_NOTE         = 20,
   MIDI_CWPTT_NOTE          = 21,    // set MIDI note for PTT activation (to radio)
-  MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
-  MIDI_FREQ_CTRL           = 23,     // set MIDI controller for side tone frequency (to radio)
+  //MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
+  //MIDI_FREQ_CTRL           = 23,     // set MIDI controller for side tone frequency (to radio)
 
   MIDI_WM8960_ENABLE            = 40,
   MIDI_WM8960_INPUT_LEVEL       = 41,
@@ -165,8 +165,8 @@ public:
     void set_midi_ptt_mic_note(int v) { midi_ptt_mic_note = v; }
     void set_midi_ptt_in_note(int v) { midi_ptt_in_note = v; }
     void set_midi_cwptt_note(int v) { midi_cwptt_note = v; }
-    void set_midi_speed_ctrl(int v) { midi_speed_ctrl = v; }
-    void set_midi_freq_ctrl(int v)  { midi_freq_ctrl = v; }
+    void set_midi_speed_ctrl(int v) { return; } //{ midi_speed_ctrl = v; }
+    void set_midi_freq_ctrl(int v)  { return; } //{ midi_freq_ctrl = v; }
     void set_cwptt_mute_option(int v) { mute_on_cwptt = v; }
 
     void set_midi_rx_ch(int v) { midi_rx_ch = v; }
@@ -208,15 +208,15 @@ private:
     int midi_ptt_mic_note     = -1;
     int midi_ptt_in_note      = -1;
     int midi_cwptt_note       = -1;
-    int midi_speed_ctrl       = -1;
-    int midi_freq_ctrl        = -1;
+    //int midi_speed_ctrl       = -1;
+    //int midi_freq_ctrl        = -1;
 
     // Enable/disable  that MICPTT triggers the hardware PTT output.
     // (MICPTT will only trigger a MIDI message if disabled)
     uint8_t micptt_hwptt      = 1;
 
-    // Enable/disable MIDI responses back to MIDI controller
-    uint8_t midi_response     = 0;
+    // Enable/disable MIDI responses back to software radio and other controllers
+    uint8_t midi_response     = 1;
 
     // Enable/disable POTS
     uint8_t enable_pots       = 1;
