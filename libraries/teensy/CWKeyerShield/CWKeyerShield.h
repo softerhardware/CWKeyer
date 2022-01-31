@@ -54,16 +54,15 @@ enum midi_control_selection {
   MIDI_RESPONSE            = 12,    // enable/disable reporting back to MIDI controller
   MIDI_MUTE_CWPTT          = 13,    // enable/disable muting of RX audio during auto-PTT
   MIDI_MICPTT_HWPTT        = 14,    // enable/disable that MICIN triggers the hardware PTT output
+  MIDI_CWPTT_HWPTT         = 15,    // enable/disable that CWPTT triggers the hardware PTT output
 
-  MIDI_RX_CH               = 16,    // set MIDI channel to/from controller
-  MIDI_TX_CH               = 17,    // set MIDI channel to radio
+  MIDI_CONTROLLER_CH       = 16,    // set MIDI channel to/from controller
+  MIDI_RADIO_CH            = 17,    // set MIDI channel to radio
 
   MIDI_KEYDOWN_NOTE        = 18,    // set MIDI note for key-down (to radio)
-  MIDI_PTT_MIC_NOTE        = 19,
-  MIDI_PTT_IN_NOTE         = 20,
-  MIDI_CWPTT_NOTE          = 21,    // set MIDI note for PTT activation (to radio)
-  //MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
-  //MIDI_FREQ_CTRL           = 23,     // set MIDI controller for side tone frequency (to radio)
+  MIDI_PTT_NOTE            = 21,    // set MIDI note for PTT activation (to radio)
+  MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
+  MIDI_FREQ_CTRL           = 23,    // set MIDI controller for side tone frequency (to radio)
 
   MIDI_WM8960_ENABLE            = 40,
   MIDI_WM8960_INPUT_LEVEL       = 41,
@@ -81,15 +80,23 @@ enum midi_control_selection {
   MIDI_WM8960_RAW_WRITE         = 53
 };
 
-
+//
+// The hardware setup (digital and analog I/O lines, which audio system to use)
+// is passed as a parameter to the constructor.
+// All other parameters can in principle be changed any time (either through
+// an interface, through turning a pot, or through an incoming MIDI message)
+//
 class CWKeyerShield
 {
 public:
-    CWKeyerShield (int i2s, int freq, double vol,
-                        int pin_sidevol,
-                        int pin_sidefreq,
-                        int pin_mastervol,
-                        int pin_speed) :
+    CWKeyerShield (int i2s,
+                   int pin_sidevol,
+                   int pin_sidefreq,
+                   int pin_mastervol,
+                   int pin_speed,
+                   int pin_ptt_in,
+                   int pin_ptt_out,
+                   int pin_cw_out) :
     sine(),
     usbaudioinput(),
     teensyaudiotone(),
@@ -97,13 +104,14 @@ public:
     patchinr (usbaudioinput,   1, teensyaudiotone, 1),
     patchwav (sine,            0, teensyaudiotone, 2)
     {
-      default_freq  = freq;
-      default_level = vol;
-
       Pin_SideToneFrequency = pin_sidefreq;
       Pin_SideToneVolume    = pin_sidevol;
       Pin_MasterVolume      = pin_mastervol;
       Pin_Speed             = pin_speed;
+
+      Pin_PTTin             = pin_ptt_in;
+      Pin_PTTout            = pin_ptt_out;
+      Pin_CWout             = pin_cw_out;
 
       //
       // Audio output. The audio output method is encoded in the i2s variable:
@@ -131,46 +139,44 @@ public:
             break;
       }
       //
-      // Solder cables from teensyaudiotone to the just-initialized audio output
+      // Connect teensyaudiotone to audio output
       //
+      patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
+      patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
       if (audioin) {
+        //
+        // Connect I2S audio input to USB audio out
+        //
         patchusboutl = new AudioConnection(*audioin, 0, usbaudiooutput, 0);
         patchusboutr = new AudioConnection(*audioin, 1, usbaudiooutput, 1);
       }
-      patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
-      patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
     }
 
     void setup(void);                                           // to be executed once upon startup
     void loop(void);                                            // to be executed at each heart beat
+    void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
     void midi(void);                                            // MIDI loop
     void pots(void);                                            // Potentiometer loop
     void key(int state);                                        // CW Key up/down event
     void cwptt(int state);                                      // PTT open/close event triggered by keyer
-    void micptt(int state);                                     // PTT open/close event triggered by MICIN
-    void hwptt(int state);                                      // set hardware PTT line
+    void hwptt(int state);                                      // set hardware PTT
     void midiptt(int state);                                    // send MIDI PTT event
-#ifdef POTS_DL1YCF
-    bool analogDenoise(int pin, uint16_t *val, uint8_t *old); // De-Noise analog input
-#endif
-    void mastervolume(uint16_t level);                           // set master volume
-    void sidetonevolume(uint16_t level);                      // Change side tone volume
-    void sidetonefrequency(uint16_t freq);                    // Change side tone frequency
-    void cwspeed(uint16_t speed);                             // send CW speed event
-    void sidetoneenable(int onoff) {                          // enable/disable side tone
+    void mastervolume(uint8_t level);                           // set master volume
+    void sidetonevolume(uint8_t level);                         // Change side tone volume
+    void sidetonefrequency(uint8_t freq);                       // Change side tone frequency
+    void cwspeed(uint8_t speed);                                // send CW speed event
+    void sidetoneenable(int onoff) {                            // enable/disable side tone
        teensyaudiotone.sidetoneenable(onoff);
     }
 
-    void set_midi_keydown_note(int v) { midi_keydown_note = v; }
-    void set_midi_ptt_mic_note(int v) { midi_ptt_mic_note = v; }
-    void set_midi_ptt_in_note(int v) { midi_ptt_in_note = v; }
-    void set_midi_cwptt_note(int v) { midi_cwptt_note = v; }
-    void set_midi_speed_ctrl(int v) { return; } //{ midi_speed_ctrl = v; }
-    void set_midi_freq_ctrl(int v)  { return; } //{ midi_freq_ctrl = v; }
-    void set_cwptt_mute_option(int v) { mute_on_cwptt = v; }
+    void set_midi_keydown_note(int v)    { midi_keydown_note  = v; }
+    void set_midi_ptt_note(int v)        { midi_ptt_note      = v; }
+    void set_midi_speed_ctrl(int v)      { midi_speed_ctrl    = v; }
+    void set_midi_freq_ctrl(int v)       { midi_freq_ctrl     = v; }
+    void set_cwptt_mute_option(int v)    { mute_on_cwptt      = v; }
 
-    void set_midi_rx_ch(int v) { midi_rx_ch = v; }
-    void set_midi_tx_ch(int v) { midi_tx_ch = v; }
+    void set_midi_controller_ch(int v)   { midi_controller_ch = v; }
+    void set_midi_radio_ch(int v)        { midi_radio_ch      = v; }
 
 
 private:
@@ -194,32 +200,52 @@ private:
     AudioConnection         *patchoutl=NULL;    // Cable "L" from side tone mixer to headphone
     AudioConnection         *patchoutr=NULL;    // Cable "R" from side tone mixer to headphone
 
-    float sine_level;                           // store this to detect "no side tone volume"
-
     //
-    // MIDI note/channel values for communication with the radio
+    // MIDI channels to use for communication with the controller
+    // and/or with the radio
     // ATTN: the 16 midi channels are numbered 1-16 (not 0-15!),
     //   since this was designed for musicians not computer scientists.
+    //   So a channel value of 0 means "no communication"
     //
-    int midi_rx_ch = 2;
-    int midi_tx_ch = 1;
+    uint8_t midi_controller_ch = 2;
+    uint8_t midi_radio_ch = 0;
 
-    int midi_keydown_note     =  1;
-    int midi_ptt_mic_note     = -1;
-    int midi_ptt_in_note      = -1;
-    int midi_cwptt_note       = -1;
-    //int midi_speed_ctrl       = -1;
-    //int midi_freq_ctrl        = -1;
+    //
+    // MIDI note/controller values for communiation with the radio
+    // A value of zero indicates "no communication"
+    // 
+    uint8_t midi_keydown_note     = 0;
+    uint8_t midi_ptt_note         = 0;
+    uint8_t midi_speed_ctrl       = 0;
+    uint8_t midi_freq_ctrl        = 0;
 
-    // Enable/disable  that MICPTT triggers the hardware PTT output.
-    // (MICPTT will only trigger a MIDI message if disabled)
+    // Enable/disable  that MICPTT/CWPTT triggers the hardware PTT output.
+    // (both will trigger a MIDI message in either case)
     uint8_t micptt_hwptt      = 1;
+    uint8_t cwptt_hwptt       = 1;
 
-    // Enable/disable MIDI responses back to software radio and other controllers
-    uint8_t midi_response     = 1;
+    // PTT state from keyer. This flag is set if the keyer wants to
+    // activate PTT. The actual PTT switching is done in monitor_ptt()
+    uint8_t cwptt_state = 0;
+
+    // PTT state of the MIDI and hardware PTT "lines"
+    uint8_t hwptt_state=0;
+    uint8_t midiptt_state=0;
+
+    // Enable/disable MIDI responses back to controller
+    uint8_t midi_controller_response     = 0;
 
     // Enable/disable POTS
     uint8_t enable_pots       = 1;
+
+    //
+    // (Digital) inputs to monitor / (Digital) output lines
+    // A negative value indicates 'do not use'
+    // Default values refer to the SofterHardware shield
+    //
+    int Pin_PTTin              = -1;
+    int Pin_PTTout             = -1;
+    int Pin_CWout              = -1;
 
     //
     // (Analog) inputs to monitor. A negative value indicates "do not use this feature"
@@ -242,18 +268,15 @@ private:
     uint16_t last_sidevol          = 0;
     uint16_t last_mastervol        = 0;
     uint16_t last_speed            = 0;
-    //
-    // Initial side tone frequency and volume.
-    // In normal circumstances, these will be set very soon by the
-    // caller of this class
-    //
-    int  default_freq     = 800;            // default side tone frequency
-    float default_level   = 0.2F;           // default side tone volume
 
     int mute_on_cwptt  = 0;                 // If set, Audio from PC is muted while CWPTT is active
 
     unsigned long last_analog_read = 0;     // time of last analog read
-    unsigned int last_analog_line=0;        // which line was read last time
+    unsigned int  last_analog_line=0;       // which line was read last time
+
+    unsigned long last_ptt_read = 0;        // time of last PTT-in reading
+    uint8_t       last_ptt_in = 0;          // state of PTT-in line
+    uint8_t       ptt_state = 0;            // PTT state
 
 
     // Accumulators for MIDI commands with multiple data
@@ -261,30 +284,25 @@ private:
     int8_t accum_b = 0;
     int8_t accum_c = 0;
 
-    //
-    // Side tone level (amplitude), in 32 steps from zero to one, about 2 dB per step
-    // This is used to convert the value from the (linear) volume pot to an amplitude level
-    //
-    // Note: sidetonevolume() takes an integer argument between 0 and 31, and this data
-    //       is then used to convert to an amplitude for the side tone oscillator
-    //
-    // math.pow(10,-3+x/10.3333) where x is integer value, -3 is number of decades, and 10.3333 is maxx/decades
-    // for i in range(0,32): print(math.pow(10, -2+i/15.5))
-    //
-    // Set first entry to zero to allow for "complete muting"
+    // Side tone level (amplitude), in 32 steps from zero to one, covering 40 dB
+    // alltogether.  Set first entry (nominally: -40 dB, amplitude 0.0100) to zero
+    // to allow for "complete muting"
 
+    float VolTab[32] = {0.0000, 0.0116, 0.0135, 0.0156, 0.0181, 0.0210, 0.0244, 0.0283,
+                        0.0328, 0.0381, 0.0442, 0.0512, 0.0595, 0.0690, 0.0800, 0.0928,
+                        0.1077, 0.1250, 0.1450, 0.1682, 0.1951, 0.2264, 0.2626, 0.3047,
+                        0.3535, 0.4101, 0.4758, 0.5520, 0.6404, 0.7430, 0.8620, 1.0000};
 
-    // 3 decades
-    //float VolTab[32]={0.000,0.00125,0.00156,0.00195,0.00244,0.00305,0.00381,0.00476,
-    //                  0.00595,0.00743,0.00928,0.0116,0.0145,0.01812,0.02264,0.02829,
-    //                  0.03535,0.04417,0.0552,0.06898,0.0862,0.10771,0.1346,0.1682,
-    //                  0.21018,0.26264,0.3282,0.41012,0.51249,0.64041,0.80027,1.0000};
-
-    //2 decades
-    float VolTab[32] = {0.00,0.0116,0.0135,0.0156,0.0181,0.021,0.0244,0.0283,
-                        0.0328,0.0381,0.0442,0.0512,0.0595,0.069,0.08,0.0928,
-                        0.1077,0.125,0.145,0.1682,0.1951,0.2264,0.2626,0.3047,
-                        0.3535,0.4101,0.4758,0.552,0.6404,0.743,0.862,1.0};
+    //
+    // CW speed table (wpm), in 32 steps from 5 to 52 wpm.
+    // differences between adjacent steps increase at the
+    // top of the scale. With the pot in center position we
+    // have about 20 wpm.
+    //
+    uint8_t SpeedTab[32] = {  5,  6,  7,  8,  9, 10, 11, 12,
+                             13, 14, 15, 16, 17, 18, 19, 20,
+                             21, 22, 23, 24, 26, 28, 30, 32,
+                             34, 36, 38, 40, 43, 46, 49, 52};
 
 };
 
