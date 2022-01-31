@@ -73,7 +73,6 @@ void CWKeyerShield::loop(void)
 void CWKeyerShield::midi(void)
 {
     uint cmd, data;
-    static uint32_t lsb_data = 0;  // in case we need BIG numbers (currently unused)
 
     //
     // "swallow" incoming MIDI messages on ANY channel,
@@ -103,14 +102,16 @@ void CWKeyerShield::midi(void)
 
         if (usbMIDI.getChannel() == midi_rx_ch) {
             switch(cmd) {
-                case MIDI_SET_ACCUM:
-                    // Set lsb_data for > 7 bit values
-                    lsb_data = data;
+                case MIDI_SET_A:
+                    accum_a = data;
                     break;
 
-                case MIDI_SHIFT_ACCUM:
-                    // Set lsb_data for > 7 bit values
-                    lsb_data = (lsb_data << 7) | data;
+                case MIDI_SET_B:
+                    accum_b = data;
+                    break;
+
+                case MIDI_SET_C:
+                    accum_c = data;
                     break;
 
                 case MIDI_MASTER_VOLUME:
@@ -190,8 +191,108 @@ void CWKeyerShield::midi(void)
                     midi_response = data;
                     break;
 
+                case MIDI_WM8960_ENABLE:
+                    if (wm8960) {
+                        if (data != 0) wm8960->enable();
+                        else wm8960->disable();
+                    }
+                    break;
+
+                case MIDI_WM8960_INPUT_LEVEL:
+                    if (wm8960) {
+                        float v;
+                        v = (float)data/127.0;
+                        // accumulator A is right if set, otherwise value is for both
+                        if (accum_a >= 0) wm8960->inputLevel( v, (float)accum_a/127.0);
+                        else wm8960->inputLevel(v,v);
+                    }
+                    break;
+
+                case MIDI_WM8960_INPUT_SELECT:
+                    if (wm8960) wm8960->inputSelect(data);
+                    break;
+
+                case MIDI_WM8960_VOLUME:
+                    if (wm8960) {
+                        float v;
+                        v = (float)data/127.0;
+                        // accumulator A is right if set, otherwise value is for both
+                        if (accum_a >= 0) wm8960->volume( v, (float)accum_a/127.0);
+                        else wm8960->volume(v,v);
+                    }
+                    break;
+
+                case MIDI_WM8960_HEADPHONE_VOLUME:
+                    if (wm8960) {
+                        float v;
+                        v = (float)data/127.0;
+                        // accumulator A is right if set, otherwise value is for both
+                        if (accum_a >= 0) wm8960->headphoneVolume( v, (float)accum_a/127.0);
+                        else wm8960->headphoneVolume(v,v);
+                    }
+                    break;
+
+                case MIDI_WM8960_HEADPHONE_POWER:
+                    if (wm8960) wm8960->headphonePower(data);
+                    break;
+
+                case MIDI_WM8960_SPEAKER_VOLUME:
+                    if (wm8960) {
+                        float v;
+                        v = (float)data/127.0;
+                        // accumulator A is right if set, otherwise value is for both
+                        if (accum_a >= 0) wm8960->speakerVolume( v, (float)accum_a/127.0);
+                        else wm8960->speakerVolume(v,v);
+                    }
+                    break;
+
+                case MIDI_WM8960_SPEAKER_POWER:
+                    if (wm8960) wm8960->speakerPower(data);
+                    break;
+
+                case MIDI_WM8960_DISABLE_ADCHPF:
+                    if (wm8960) wm8960->disableADCHPF(data);
+                    break;
+
+                case MIDI_WM8960_ENABLE_MICBIAS:
+                    if (wm8960) wm8960->enableMicBias(data);
+                    break;
+
+                case MIDI_WM8960_ENABLE_ALC:
+                    if (wm8960) wm8960->enableALC(data);
+                    break;
+
+                case MIDI_WM8960_MIC_POWER:
+                    if (wm8960) wm8960->micPower(data);
+                    break;
+
+                case MIDI_WM8960_LINEIN_POWER:
+                    if (wm8960) wm8960->lineinPower(data);
+                    break;
+
+                case MIDI_WM8960_RAW_WRITE:
+                    if (wm8960 && accum_a >= 0 && accum_b >= 0 && accum_c >= 0) {
+                        uint16_t val;
+                        uint16_t mask;
+
+                        val = accum_a | ((accum_c & 0b011) << 7);
+                        mask = accum_b | ((accum_c & 0b01100) << 5);
+
+                        // reg is never more than 6bits so use data
+                        wm8960->write(data, val, mask, (accum_c & 0b010000) != 0);
+
+                    }
+                    break;
+
                 default:
                     break;
+            }
+
+            if (cmd > MIDI_SET_C) {
+                // Reset accumulators
+                accum_a = -1;
+                accum_b = -1;
+                accum_c = -1;
             }
         }
     }

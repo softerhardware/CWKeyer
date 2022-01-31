@@ -39,8 +39,9 @@ void keyer_leadin_set(int leadin);  // set keyer PTT lead-in time (leadin milli-
 void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*) (if using auto-PTT)
 
 enum midi_control_selection {
-  MIDI_SET_ACCUM           = 0,     // initiate multi-byte value
-  MIDI_SHIFT_ACCUM         = 1,     // update multi-byte value
+  MIDI_SET_A               = 0,     // Set 7-bit accumulator A
+  MIDI_SET_B               = 1,     // Set 7-bit accumulator B
+  MIDI_SET_C               = 2,     // Set 7-bit accumulator C
 
   MIDI_MASTER_VOLUME       = 4,     // set master volume
   MIDI_SIDETONE_VOLUME     = 5,     // set sidetone volume
@@ -62,7 +63,22 @@ enum midi_control_selection {
   MIDI_PTT_IN_NOTE         = 20,
   MIDI_CWPTT_NOTE          = 21,    // set MIDI note for PTT activation (to radio)
   MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
-  MIDI_FREQ_CTRL           = 23     // set MIDI controller for side tone frequency (to radio)
+  MIDI_FREQ_CTRL           = 23,     // set MIDI controller for side tone frequency (to radio)
+
+  MIDI_WM8960_ENABLE            = 40,
+  MIDI_WM8960_INPUT_LEVEL       = 41,
+  MIDI_WM8960_INPUT_SELECT      = 42,
+  MIDI_WM8960_VOLUME            = 43,
+  MIDI_WM8960_HEADPHONE_VOLUME  = 44,
+  MIDI_WM8960_HEADPHONE_POWER   = 45,
+  MIDI_WM8960_SPEAKER_VOLUME    = 46,
+  MIDI_WM8960_SPEAKER_POWER     = 47,
+  MIDI_WM8960_DISABLE_ADCHPF    = 48,
+  MIDI_WM8960_ENABLE_MICBIAS    = 49,
+  MIDI_WM8960_ENABLE_ALC        = 50,
+  MIDI_WM8960_MIC_POWER         = 51,
+  MIDI_WM8960_LINEIN_POWER      = 52,
+  MIDI_WM8960_RAW_WRITE         = 53
 };
 
 
@@ -238,6 +254,12 @@ private:
 
     unsigned long last_analog_read = 0;     // time of last analog read
     unsigned int last_analog_line=0;        // which line was read last time
+
+
+    // Accumulators for MIDI commands with multiple data
+    int8_t accum_a = 0;
+    int8_t accum_b = 0;
+    int8_t accum_c = 0;
 
     //
     // Side tone level (amplitude), in 32 steps from zero to one, about 2 dB per step
