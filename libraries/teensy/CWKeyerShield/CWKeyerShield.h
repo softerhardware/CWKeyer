@@ -39,30 +39,27 @@ void keyer_leadin_set(int leadin);  // set keyer PTT lead-in time (leadin milli-
 void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*) (if using auto-PTT)
 
 enum midi_control_selection {
-  MIDI_SET_A               = 0,     // Set 7-bit accumulator A
-  MIDI_SET_B               = 1,     // Set 7-bit accumulator B
-  MIDI_SET_C               = 2,     // Set 7-bit accumulator C
+  MIDI_SET_A                    = 0,     // Set 7-bit accumulator A
+  MIDI_SET_B                    = 1,     // Set 7-bit accumulator B
+  MIDI_SET_C                    = 2,     // Set 7-bit accumulator C
 
-  MIDI_MASTER_VOLUME       = 4,     // set master volume
-  MIDI_SIDETONE_VOLUME     = 5,     // set sidetone volume
-  MIDI_SIDETONE_FREQUENCY  = 6,     // set sidetone frequency
-  MIDI_CW_SPEED            = 7,     // set CW speed
-  MIDI_ENABLE_POTS         = 8,     // enable/disable potentiometers
-  MIDI_KEYER_AUTOPTT       = 9,     // enable/disable auto-PTT from CW keyer
-  MIDI_KEYER_LEADIN        = 10,    // set Keyer lead-in time (if auto-PTT active)
-  MIDI_KEYER_HANG          = 11,    // set Keyer hang time (if auto-PTT active)
-  MIDI_RESPONSE            = 12,    // enable/disable reporting back to MIDI controller
-  MIDI_MUTE_CWPTT          = 13,    // enable/disable muting of RX audio during auto-PTT
-  MIDI_MICPTT_HWPTT        = 14,    // enable/disable that MICIN triggers the hardware PTT output
-  MIDI_CWPTT_HWPTT         = 15,    // enable/disable that CWPTT triggers the hardware PTT output
+  MIDI_MASTER_VOLUME            = 4,     // set master volume
+  MIDI_SIDETONE_VOLUME          = 5,     // set sidetone volume
+  MIDI_SIDETONE_FREQUENCY       = 6,     // set sidetone frequency
+  MIDI_CW_SPEED                 = 7,     // set CW speed
+  MIDI_ENABLE_POTS              = 8,     // enable/disable potentiometers
+  MIDI_KEYER_AUTOPTT            = 9,     // enable/disable auto-PTT from CW keyer
+  MIDI_KEYER_LEADIN             = 10,    // set Keyer lead-in time (if auto-PTT active)
+  MIDI_KEYER_HANG               = 11,    // set Keyer hang time (if auto-PTT active)
+  MIDI_RESPONSE                 = 12,    // enable/disable reporting back to MIDI controller
+  MIDI_MUTE_CWPTT               = 13,    // enable/disable muting of RX audio during auto-PTT
+  MIDI_MICPTT_HWPTT             = 14,    // enable/disable that MICIN triggers the hardware PTT output
+  MIDI_CWPTT_HWPTT              = 15,    // enable/disable that CWPTT triggers the hardware PTT output
 
-  MIDI_CONTROLLER_CH       = 16,    // set MIDI channel to/from controller
-  MIDI_RADIO_CH            = 17,    // set MIDI channel to radio
+  MIDI_SET_CHANNEL              = 16,    // set MIDI channel to/from controller
 
-  MIDI_KEYDOWN_NOTE        = 18,    // set MIDI note for key-down (to radio)
-  MIDI_PTT_NOTE            = 21,    // set MIDI note for PTT activation (to radio)
-  MIDI_SPEED_CTRL          = 22,    // set MIDI controller for cw speed (to radio)
-  MIDI_FREQ_CTRL           = 23,    // set MIDI controller for side tone frequency (to radio)
+  MIDI_KEYDOWN_NOTE             = 17,    // MIDI note for key-down
+  MIDI_PTT_NOTE                 = 18,    // MIDI note for PTT activation
 
   MIDI_WM8960_ENABLE            = 40,
   MIDI_WM8960_INPUT_LEVEL       = 41,
@@ -169,14 +166,8 @@ public:
        teensyaudiotone.sidetoneenable(onoff);
     }
 
-    void set_midi_keydown_note(int v)    { midi_keydown_note  = v; }
-    void set_midi_ptt_note(int v)        { midi_ptt_note      = v; }
-    void set_midi_speed_ctrl(int v)      { midi_speed_ctrl    = v; }
-    void set_midi_freq_ctrl(int v)       { midi_freq_ctrl     = v; }
-    void set_cwptt_mute_option(int v)    { mute_on_cwptt      = v; }
-
-    void set_midi_controller_ch(int v)   { midi_controller_ch = v; }
-    void set_midi_radio_ch(int v)        { midi_radio_ch      = v; }
+    void set_cwptt_mute_option(int v)    { mute_on_cwptt = v; }
+    void set_midi_channel(int v)         { midi_channel  = v; }
 
 
 private:
@@ -201,23 +192,13 @@ private:
     AudioConnection         *patchoutr=NULL;    // Cable "R" from side tone mixer to headphone
 
     //
-    // MIDI channels to use for communication with the controller
-    // and/or with the radio
+    // MIDI channel to use for communication with the controller
+    // *and* with the radio
     // ATTN: the 16 midi channels are numbered 1-16 (not 0-15!),
     //   since this was designed for musicians not computer scientists.
     //   So a channel value of 0 means "no communication"
     //
-    uint8_t midi_controller_ch = 2;
-    uint8_t midi_radio_ch = 0;
-
-    //
-    // MIDI note/controller values for communiation with the radio
-    // A value of zero indicates "no communication"
-    // 
-    uint8_t midi_keydown_note     = 0;
-    uint8_t midi_ptt_note         = 0;
-    uint8_t midi_speed_ctrl       = 0;
-    uint8_t midi_freq_ctrl        = 0;
+    uint8_t midi_channel = 10;
 
     // Enable/disable  that MICPTT/CWPTT triggers the hardware PTT output.
     // (both will trigger a MIDI message in either case)
@@ -232,7 +213,9 @@ private:
     uint8_t hwptt_state=0;
     uint8_t midiptt_state=0;
 
-    // Enable/disable MIDI responses back to controller
+    // Enable/disable MIDI responses to controller
+    // NOTE: "key-down", "PTT", "side tone freq" and "CW speed"
+    //       messages are sent independently of this value.
     uint8_t midi_controller_response     = 0;
 
     // Enable/disable POTS

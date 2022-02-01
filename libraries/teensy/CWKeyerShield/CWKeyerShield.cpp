@@ -139,7 +139,7 @@ void CWKeyerShield::midi(void)
         //Serial.print("MIDI ");
         //Serial.print(usbMIDI.getChannel());
         //Serial.print(" ");
-        //Serial.print(midi_controller_ch);
+        //Serial.print(midi_channel);
         //Serial.print(" ");
         //Serial.print(cmd);
         //Serial.print(" ");
@@ -147,12 +147,12 @@ void CWKeyerShield::midi(void)
 
 
         // Accept setting of control channel on any channel
-        if (cmd == MIDI_CONTROLLER_CH) {
+        if (cmd == MIDI_SET_CHANNEL) {
             if (data > 16) data=0;
-            set_midi_controller_ch(data);
+            set_midi_channel(data);
         }
 
-        if (usbMIDI.getChannel() == midi_controller_ch) {
+        if (usbMIDI.getChannel() == midi_channel) {
             switch(cmd) {
                 case MIDI_SET_A:
                     accum_a = data;
@@ -215,37 +215,14 @@ void CWKeyerShield::midi(void)
                     cwptt_hwptt = (data != 0);
                     break;
 
-                case MIDI_RADIO_CH:
+                case MIDI_SET_CHANNEL:
                     //
                     // If the value is zero or > 16, 
                     // this will switch off *all* communication
                     // on the "radio" channel
                     //
                     if (data > 16) data=0;
-                    midi_radio_ch = data;
-                    break;
-
-                //
-                // The Note/Controller values for the communication
-                // which the radio range from 0-127.
-                // We will never send a MIDI message with a note or
-                // controller of zero, so this value can be used to
-                // switch off the corresponding message
-                //
-                case MIDI_KEYDOWN_NOTE:
-                    midi_keydown_note = data;
-                    break;
-
-                case MIDI_PTT_NOTE:
-                    midi_ptt_note = data;
-                    break;
-
-                case MIDI_SPEED_CTRL:
-                    midi_speed_ctrl = data;
-                    break;
-
-                case MIDI_FREQ_CTRL:
-                    midi_freq_ctrl = data;
+                    midi_channel = data;
                     break;
 
                 case MIDI_RESPONSE:
@@ -461,8 +438,8 @@ void CWKeyerShield::midiptt(int state)
     //
     // send MIDI PTT message to radio
     //
-    if (midi_ptt_note > 0 && midi_radio_ch > 0) {
-        usbMIDI.sendNoteOn(midi_ptt_note, state ? 127 : 0, midi_radio_ch);
+    if (midi_channel > 0) {
+        usbMIDI.sendNoteOn(MIDI_PTT_NOTE, state ? 127 : 0, midi_channel);
     }
 }
 
@@ -476,8 +453,8 @@ void CWKeyerShield::key(int state)
     // c) set hardware line
     //
     teensyaudiotone.setTone(state);
-    if (midi_keydown_note > 0 && midi_radio_ch > 0) {
-        usbMIDI.sendNoteOn(midi_keydown_note, state ? 127 : 0, midi_radio_ch);
+    if (midi_channel > 0) {
+        usbMIDI.sendNoteOn(MIDI_KEYDOWN_NOTE, state ? 127 : 0, midi_channel);
         usbMIDI.send_now();
     }
     if (Pin_CWout >= 0) {
@@ -504,8 +481,8 @@ void CWKeyerShield::cwptt(int state)
 void CWKeyerShield::mastervolume(uint8_t level)  // input level from 0 ... 127
 {
     level &= 0x7f; // paranoia
-    if (midi_controller_response && midi_controller_ch > 0) {
-        usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, level, midi_controller_ch); // send to MIDI controller
+    if (midi_controller_response && midi_channel > 0) {
+        usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, level, midi_channel);
     }
     if (sgtl5000) {
         sgtl5000->volume(((float)level)/127.0);
@@ -523,8 +500,8 @@ void CWKeyerShield::sidetonevolume(uint8_t level)    // input level from 0 ... 1
     // an amplitude using VolTab, such that a logarithmic pot is
     // simulated.
     //
-    if (midi_controller_response && midi_controller_ch > 0) {
-        usbMIDI.sendControlChange(MIDI_SIDETONE_VOLUME, level, midi_controller_ch); // send to MIDI controller
+    if (midi_controller_response && midi_channel > 0) {
+        usbMIDI.sendControlChange(MIDI_SIDETONE_VOLUME, level, midi_channel);
     }
     level = level >> 2;                  // reduce to 0...31
     sine.amplitude(VolTab[level]);
@@ -535,11 +512,8 @@ void CWKeyerShield::sidetonefrequency(uint8_t freq)   // input freq from 0 ... 1
     freq &= 0x7F; // paranoia
     sine.frequency( (float)(10*freq) );
 
-    if (midi_freq_ctrl > 0 && midi_radio_ch > 0) {
-      usbMIDI.sendControlChange(midi_freq_ctrl, freq, midi_radio_ch); // send  to radio
-    }
-    if (midi_controller_response && midi_controller_ch > 0) {
-        usbMIDI.sendControlChange(MIDI_SIDETONE_FREQUENCY, freq, midi_controller_ch); // send to MIDI controller
+    if (midi_channel > 0) {
+        usbMIDI.sendControlChange(MIDI_SIDETONE_FREQUENCY, freq, midi_channel);
     }
 }
 
@@ -548,11 +522,8 @@ void CWKeyerShield::cwspeed(uint8_t speed)   // input speed from 0 ... 127
     speed &= 0x7F;              // paranoia
     if (speed == 0) speed = 1;  // even more paranoia
 
-    if (midi_speed_ctrl > 0 && midi_radio_ch > 0) {
-      usbMIDI.sendControlChange(midi_speed_ctrl, speed, midi_radio_ch);  // send to radio
-    }
-    if (midi_controller_response && midi_controller_ch > 0) {
-        usbMIDI.sendControlChange(MIDI_CW_SPEED, speed, midi_controller_ch);    // send to MIDI controller
+    if (midi_channel> 0) {
+        usbMIDI.sendControlChange(MIDI_CW_SPEED, speed, midi_channel);
     }
  }
 
