@@ -66,10 +66,8 @@ void CWKeyerShield::setup(void)
 
     AudioInterrupts();
 
-#ifndef DL1YCF_POTS
     analogReadRes(12);
     analogReadAveraging(40);
-#endif
 
 }
 
