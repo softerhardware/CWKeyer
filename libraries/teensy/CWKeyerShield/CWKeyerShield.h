@@ -151,9 +151,6 @@ public:
 
     void setup(void);                                           // to be executed once upon startup
     void loop(void);                                            // to be executed at each heart beat
-    void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
-    void midi(void);                                            // MIDI loop
-    void pots(void);                                            // Potentiometer loop
     void key(int state);                                        // CW Key up/down event
     void cwptt(int state);                                      // PTT open/close event triggered by keyer
     void hwptt(int state);                                      // set hardware PTT
@@ -171,6 +168,11 @@ public:
 
 
 private:
+    void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
+    void midi(void);                                            // MIDI loop
+    void pots(void);                                            // Potentiometer loop
+    void adjust(void);                                          // slowly adjust SideTone/Master volume
+
     AudioSynthWaveformSine  sine;               // free-running side tone oscillator
     AudioInputUSB           usbaudioinput;      // Audio in from Computer
     AudioOutputUSB          usbaudiooutput;     // Audio out to Computer
@@ -267,10 +269,21 @@ private:
     int8_t accum_b = 0;
     int8_t accum_c = 0;
 
+    //
+    // Variables for the "continuous" adjustment of side tone and master volume.
+    // This is meant to reduce audible "cracks" when changing the volume
+    //
+    float sidetonelevel_target;
+    float sidetonelevel_actual;
+    float masterlevel_target;
+    float masterlevel_actual;
+    unsigned long last_adjust=0;
+
+    //
     // Side tone level (amplitude), in 32 steps from zero to one, covering 40 dB
     // alltogether.  Set first entry (nominally: -40 dB, amplitude 0.0100) to zero
     // to allow for "complete muting"
-
+    //
     float VolTab[32] = {0.0000, 0.0116, 0.0135, 0.0156, 0.0181, 0.0210, 0.0244, 0.0283,
                         0.0328, 0.0381, 0.0442, 0.0512, 0.0595, 0.0690, 0.0800, 0.0928,
                         0.1077, 0.1250, 0.1450, 0.1682, 0.1951, 0.2264, 0.2626, 0.3047,

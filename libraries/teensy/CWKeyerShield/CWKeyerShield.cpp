@@ -51,17 +51,21 @@ void CWKeyerShield::setup(void)
     //
 
     sine.frequency(800.0F);
-    sine.amplitude(0.2F);
+    sidetonelevel_target=0.2F;
+    sidetonelevel_actual=0.2F;
+    sine.amplitude(sidetonelevel_actual);
 
+    masterlevel_actual=0.8F;
+    masterlevel_target=0.8F;
     if (wm8960) {
       wm8960->enable();
-      wm8960->volume(0.8F);
+      wm8960->volume(masterlevel_actual);
       wm8960->inputSelect(0);             // select and activate microphone input
       wm8960->inputLevel(0.1F, 0.1F);     // volume control for mic input (both mic and MEMS)
     }
     if (sgtl5000) {
       sgtl5000->enable();
-      sgtl5000->volume(0.8F);
+      sgtl5000->volume(masterlevel_actual);
     }
 
     AudioInterrupts();
@@ -76,6 +80,66 @@ void CWKeyerShield::loop(void)
     if (enable_pots) { pots(); }
     monitor_ptt();
     midi();
+    adjust();
+}
+
+void CWKeyerShield::adjust(void)
+{
+    //
+    // There were audible cracks in the side tone if the side
+    // tone volume was changed. Therefore we not only define
+    // the target value when setting the sidetone, and here
+    // we slowly approach this value
+    //
+    unsigned long now=millis();
+    int update;
+    if (now > last_adjust) {
+      last_adjust=now;
+
+      update=0;
+      if (sidetonelevel_actual < sidetonelevel_target - 0.01F) {
+        sidetonelevel_actual += 0.001F;
+        update=1;
+      } else if (sidetonelevel_actual < sidetonelevel_target - 0.001F) {
+        sidetonelevel_actual += 0.0005F;
+        update=1;
+      } else if (sidetonelevel_actual > sidetonelevel_target + 0.01F) {
+        sidetonelevel_actual -= 0.001F;
+        update=1;
+      } else if (sidetonelevel_actual > sidetonelevel_target + 0.001F) {
+        sidetonelevel_actual -= 0.0005F;
+        update=1;
+      }
+      if (update) sine.amplitude(sidetonelevel_actual);
+
+      //
+      // Note that depending on the "granularity" of volume
+      // control in the hardware, this may offer little
+      // improvement
+      //
+      update=0;
+      if (masterlevel_actual < masterlevel_target - 0.01F) {
+        masterlevel_actual += 0.001F;
+        update=1;
+      } else if (masterlevel_actual < masterlevel_target - 0.001F) {
+        masterlevel_actual += 0.0005F;
+        update=1;
+      } else if (masterlevel_actual > masterlevel_target + 0.01F) {
+        masterlevel_actual -= 0.001F;
+        update=1;
+      } else if (masterlevel_actual > masterlevel_target + 0.001F) {
+        masterlevel_actual -= 0.0005F;
+        update=1;
+      } 
+      if (update) {
+        if (sgtl5000) {
+          sgtl5000->volume(masterlevel_actual);
+        }
+        if (wm8960) {
+          wm8960->volume(masterlevel_actual);
+        }
+      }
+    }
 }
 
 void CWKeyerShield::monitor_ptt(void)
@@ -482,12 +546,7 @@ void CWKeyerShield::mastervolume(uint8_t level)  // input level from 0 ... 127
     if (midi_controller_response && midi_channel > 0) {
         usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, level, midi_channel);
     }
-    if (sgtl5000) {
-        sgtl5000->volume(((float)level)/127.0);
-    }
-    if (wm8960) {
-        wm8960->volume(((float)level)/127.0);
-    }
+    masterlevel_target=(float)level/127.0;
 }
 
 void CWKeyerShield::sidetonevolume(uint8_t level)    // input level from 0 ... 127
@@ -502,7 +561,7 @@ void CWKeyerShield::sidetonevolume(uint8_t level)    // input level from 0 ... 1
         usbMIDI.sendControlChange(MIDI_SIDETONE_VOLUME, level, midi_channel);
     }
     level = level >> 2;                  // reduce to 0...31
-    sine.amplitude(VolTab[level]);
+    sidetonelevel_target=VolTab[level];
 }
 
 void CWKeyerShield::sidetonefrequency(uint8_t freq)   // input freq from 0 ... 127, maps to 0 ... 1270 Hz
