@@ -87,9 +87,9 @@ void CWKeyerShield::adjust(void)
 {
     //
     // There were audible cracks in the side tone if the side
-    // tone volume was changed. Therefore we not only define
-    // the target value when setting the sidetone, and here
-    // we slowly approach this value
+    // tone volume was changed. Therefore we only define
+    // the target value when setting the sidetone or the master
+    // volume, and here we slowly approach this value
     //
     unsigned long now=millis();
     int update;
