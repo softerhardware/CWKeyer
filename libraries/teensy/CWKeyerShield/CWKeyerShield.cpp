@@ -236,14 +236,14 @@ void CWKeyerShield::midi(void)
                     sidetonevolume(data);
                     break;
 
-                case MIDI_SIDETONE_FREQUENCY:
-                    sidetonefrequency(data);
-                    break;
-
                 case MIDI_CW_SPEED:
                     if (data < 1) data=1;
                     speed_set(data);  // report to keyer
                     cwspeed(data);    // report to radio (and MIDI controller)
+                    break;
+
+                case MIDI_SIDETONE_FREQUENCY:
+                    sidetonefrequency(data);
                     break;
 
                 case MIDI_ENABLE_POTS:
@@ -265,6 +265,10 @@ void CWKeyerShield::midi(void)
                     keyer_hang_set(data); // report to keyer
                     break;
 
+                case MIDI_RESPONSE:
+                    midi_controller_response = (data != 0);
+                    break;
+
                 case MIDI_MUTE_CWPTT:
                     mute_on_cwptt = (data != 0);
                     break;
@@ -277,6 +281,23 @@ void CWKeyerShield::midi(void)
                     cwptt_hwptt = (data != 0);
                     break;
 
+                case MIDI_KEYDOWN_NOTE:
+                    //
+                    // This is an incoming message from a controller.
+                    // It can be used to trigger Key-down, for example,
+                    // to implement a "Tune" button in the MIDI controller
+                    //
+                    key(data != 0);
+                    break;
+
+                case MIDI_PTT_NOTE:
+                    //
+                    // This is an incoming message from a controller.
+                    // It can be used to trigger PTT
+                    //
+                    cwptt(data != 0);
+                    break;
+                    
                 case MIDI_SET_CHANNEL:
                     //
                     // If the value is zero or > 16, 
@@ -285,10 +306,6 @@ void CWKeyerShield::midi(void)
                     //
                     if (data > 16) data=0;
                     midi_channel = data;
-                    break;
-
-                case MIDI_RESPONSE:
-                    midi_controller_response = (data != 0);
                     break;
 
                 case MIDI_WM8960_ENABLE:

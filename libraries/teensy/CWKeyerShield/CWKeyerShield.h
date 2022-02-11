@@ -38,43 +38,53 @@ void keyer_autoptt_set(int enable); // enable/disable PTT activation by keyer
 void keyer_leadin_set(int leadin);  // set keyer PTT lead-in time (leadin milli-seconds) (if using auto-PTT)
 void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*) (if using auto-PTT)
 
+//
+// avoid certain "continuous controllers"
+//
+// No.  0, 32           (Bank select)
+// No.  6, 38, 98--101  (Registered and non-Registered Parameters)
+// No. 88               (High-resolution velocity prefix)
+// No. 96, 97           (Increment/Decrement)
+// No. 120-127          (Channel mode messages)
+// 
+// Note that MIDI_KEYDOWN_NOTE and MIDI_PTT_NOTE can be processed as "controllers"
+// in the input section, but will be used as "notes" when emitted.
+//
 enum midi_control_selection {
-  MIDI_SET_A                    = 0,     // Set 7-bit accumulator A
-  MIDI_SET_B                    = 1,     // Set 7-bit accumulator B
-  MIDI_SET_C                    = 2,     // Set 7-bit accumulator C
+  MIDI_SET_A                    = 1,     // Set 7-bit accumulator A
+  MIDI_SET_B                    = 2,     // Set 7-bit accumulator B
+  MIDI_SET_C                    = 3,     // Set 7-bit accumulator C
 
   MIDI_MASTER_VOLUME            = 4,     // set master volume
   MIDI_SIDETONE_VOLUME          = 5,     // set sidetone volume
-  MIDI_SIDETONE_FREQUENCY       = 6,     // set sidetone frequency
   MIDI_CW_SPEED                 = 7,     // set CW speed
-  MIDI_ENABLE_POTS              = 8,     // enable/disable potentiometers
-  MIDI_KEYER_AUTOPTT            = 9,     // enable/disable auto-PTT from CW keyer
-  MIDI_KEYER_LEADIN             = 10,    // set Keyer lead-in time (if auto-PTT active)
-  MIDI_KEYER_HANG               = 11,    // set Keyer hang time (if auto-PTT active)
-  MIDI_RESPONSE                 = 12,    // enable/disable reporting back to MIDI controller
-  MIDI_MUTE_CWPTT               = 13,    // enable/disable muting of RX audio during auto-PTT
-  MIDI_MICPTT_HWPTT             = 14,    // enable/disable that MICIN triggers the hardware PTT output
-  MIDI_CWPTT_HWPTT              = 15,    // enable/disable that CWPTT triggers the hardware PTT output
-
-  MIDI_SET_CHANNEL              = 16,    // set MIDI channel to/from controller
-
+  MIDI_SIDETONE_FREQUENCY       = 8,     // set sidetone frequency
+  MIDI_ENABLE_POTS              = 9,     // enable/disable potentiometers
+  MIDI_KEYER_AUTOPTT            = 10,     // enable/disable auto-PTT from CW keyer
+  MIDI_KEYER_LEADIN             = 11,    // set Keyer lead-in time (if auto-PTT active)
+  MIDI_KEYER_HANG               = 12,    // set Keyer hang time (if auto-PTT active)
+  MIDI_RESPONSE                 = 13,    // enable/disable reporting back to MIDI controller
+  MIDI_MUTE_CWPTT               = 14,    // enable/disable muting of RX audio during auto-PTT
+  MIDI_MICPTT_HWPTT             = 15,    // enable/disable that MICIN triggers the hardware PTT output
+  MIDI_CWPTT_HWPTT              = 16,    // enable/disable that CWPTT triggers the hardware PTT output
   MIDI_KEYDOWN_NOTE             = 17,    // MIDI note for key-down
   MIDI_PTT_NOTE                 = 18,    // MIDI note for PTT activation
+  MIDI_SET_CHANNEL              = 19,    // set MIDI channel to/from controller
 
-  MIDI_WM8960_ENABLE            = 40,
-  MIDI_WM8960_INPUT_LEVEL       = 41,
-  MIDI_WM8960_INPUT_SELECT      = 42,
-  MIDI_WM8960_VOLUME            = 43,
-  MIDI_WM8960_HEADPHONE_VOLUME  = 44,
-  MIDI_WM8960_HEADPHONE_POWER   = 45,
-  MIDI_WM8960_SPEAKER_VOLUME    = 46,
-  MIDI_WM8960_SPEAKER_POWER     = 47,
-  MIDI_WM8960_DISABLE_ADCHPF    = 48,
-  MIDI_WM8960_ENABLE_MICBIAS    = 49,
-  MIDI_WM8960_ENABLE_ALC        = 50,
-  MIDI_WM8960_MIC_POWER         = 51,
-  MIDI_WM8960_LINEIN_POWER      = 52,
-  MIDI_WM8960_RAW_WRITE         = 53
+  MIDI_WM8960_ENABLE            = 20,
+  MIDI_WM8960_INPUT_LEVEL       = 21,
+  MIDI_WM8960_INPUT_SELECT      = 22,
+  MIDI_WM8960_VOLUME            = 23,
+  MIDI_WM8960_HEADPHONE_VOLUME  = 24,
+  MIDI_WM8960_HEADPHONE_POWER   = 25,
+  MIDI_WM8960_SPEAKER_VOLUME    = 26,
+  MIDI_WM8960_SPEAKER_POWER     = 27,
+  MIDI_WM8960_DISABLE_ADCHPF    = 28,
+  MIDI_WM8960_ENABLE_MICBIAS    = 29,
+  MIDI_WM8960_ENABLE_ALC        = 30,
+  MIDI_WM8960_MIC_POWER         = 31,
+  MIDI_WM8960_LINEIN_POWER      = 33,
+  MIDI_WM8960_RAW_WRITE         = 34
 };
 
 //
