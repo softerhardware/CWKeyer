@@ -53,6 +53,7 @@ void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*)
 //
 
 enum midi_control_selection {
+
     MIDI_NRPN_CC_MSB              = 99,
     MIDI_NRPN_CC_LSB              = 98,
     MIDI_NRPN_VAL_MSB             = 6,
@@ -140,6 +141,7 @@ public:
     patchinr (usbaudioinput,   1, teensyaudiotone, 1),
     patchwav (sine,            0, teensyaudiotone, 2)
     {
+      nrpn_init();		// because any of these could be aliases to nrpn values
       Pin_SideToneFrequency = pin_sidefreq;
       Pin_SideToneVolume    = pin_sidevol;
       Pin_MasterVolume      = pin_mastervol;
@@ -190,7 +192,10 @@ public:
 
     int8_t ctrls[128];          // current values of controls
     const unsigned NNRPN = 128;	// number of NRPNs maintained
-    int16_t nrpns[128];         // current values of NRPNs
+    int16_t nrpns[NNRPN];         // current values of NRPNs
+    void nrpn_init(void) {
+	for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpn[nrpn] = NRPNV_NOTSET;
+    }
     void nrpn_set(const int16_t nrpn, const int16_t value);
     void nrpn_send(const int16_t nrpn) {
 	usbMIDI.beginNrpn(nrpn, midi_channel);
@@ -226,7 +231,6 @@ private:
     void pots(void);                                            // Potentiometer loop
     void adjust(void);                                          // slowly adjust SideTone/Master volume
     void process_nrpn(void);                                    // Process NRPN midi messages
-
     AudioSynthWaveformSine  sine;               // free-running side tone oscillator
     AudioInputUSB           usbaudioinput;      // Audio in from Computer
     AudioOutputUSB          usbaudiooutput;     // Audio out to Computer

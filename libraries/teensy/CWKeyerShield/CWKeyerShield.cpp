@@ -184,10 +184,100 @@ void CWKeyerShield::monitor_ptt(void)
 }
 
 
-void CWKeyerShield::process_nrpn(void)
+void CWKeyerShield::process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val)
 {
     switch(nrpn_cc) {
 
+    case MIDI_NRPN_WM8960_ENABLE:
+        if (wm8960) {
+            if (nrpn_val != 0) wm8960->enable();
+            else wm8960->disable();
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_INPUT_SELECT:
+        if (wm8960) wm8960->inputSelect(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_INPUT_LEVEL:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((nrpn_val>>7)&0x7f)/127.0);
+            r = (float)((nrpn_val&0x7f)/127.0);
+            wm8960->inputLevel(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((nrpn_val>>7)&0x7f)/127.0);
+            r = (float)((nrpn_val&0x7f)/127.0);
+            wm8960->volume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_HEADPHONE_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((nrpn_val>>7)&0x7f)/127.0);
+            r = (float)((nrpn_val&0x7f)/127.0);
+            wm8960->headphoneVolume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_HEADPHONE_POWER:
+        if (wm8960) wm8960->headphonePower(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_SPEAKER_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((nrpn_val>>7)&0x7f)/127.0);
+            r = (float)((nrpn_val&0x7f)/127.0);
+            wm8960->speakerVolume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_SPEAKER_POWER:
+        if (wm8960) wm8960->speakerPower(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_DISABLE_ADCHPF:
+        if (wm8960) wm8960->disableADCHPF(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_ENABLE_MICBIAS:
+        if (wm8960) wm8960->enableMicBias(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_ENABLE_ALC:
+        if (wm8960) wm8960->enableALC(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_MIC_POWER:
+        if (wm8960) wm8960->micPower(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_LINEIN_POWER:
+        if (wm8960) wm8960->lineinPower(nrpn_val);
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_MASK:
+        wm8960_raw_mask = nrpn_val & 0x1ff;
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_DATA:
+        wm8960_raw_data = nrpn_val & 0x1ff;
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_WRITE:
+        if (wm8960 && wm8960_raw_mask >= 0 && wm8960_raw_data >= 0) {
+            wm8960->write(nrpn_val & 0x3f, wm8960_raw_data, wm8960_raw_mask, (nrpn_val & 0x40) != 0);
+        }
+        wm8960_raw_mask = -1;
+        wm8960_raw_data = -1;
+        break;
 
     default:
         break;
@@ -228,15 +318,15 @@ void CWKeyerShield::midi(void)
             }
 
             if (usbMIDI.getChannel() == midi_channel) {
-		ctrls[cmd] = data;
+		ctrls[cmd] = data; // ctrls[cmd] is the definitive value
                 switch(cmd) {
-                    case MIDI_NRPN_CC_MSB:
+                    case MIDI_NRPN_CC_MSB: // ctrls[MIDI_NRPN_CC_MSB] is already set
                         break;
-                    case MIDI_NRPN_CC_LSB:
+                    case MIDI_NRPN_CC_LSB: // ctrls[MIDI_NRPN_CC_LSB] is already set
                         break;
-                    case MIDI_NRPN_VAL_MSB:
+                    case MIDI_NRPN_VAL_MSB: // ctrls[MIDI_NRPN_VAL_MSB] is already set
                         break;
-                    case MIDI_NRPN_VAL_LSB:                        // Writing LSB value triggers NRPN call
+                    case MIDI_NRPN_VAL_LSB: // Writing LSB value triggers NRPN call
 			nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
                              (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_MIDI_NRPN_VAL_LSB]);
                         break;
@@ -344,97 +434,10 @@ void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
 	if ( ! nrpn_is_valid(value)) return;
 	nrpns[value] = NRPNV_NOTSET;
 	break;
-    case MIDI_NRPN_WM8960_ENABLE:
-        if (wm8960) {
-            if (value != 0) wm8960->enable();
-            else wm8960->disable();
-        }
-        break;
 
-    case MIDI_NRPN_WM8960_INPUT_SELECT:
-        if (wm8960) wm8960->inputSelect(value);
-        break;
-
-    case MIDI_NRPN_WM8960_INPUT_LEVEL:
-        if (wm8960) {
-            float l, r;
-            l = (float)(((value>>7)&0x7f)/127.0);
-            r = (float)((value&0x7f)/127.0);
-            wm8960->inputLevel(l,r);
-        }
-        break;
-
-    case MIDI_NRPN_WM8960_VOLUME:
-        if (wm8960) {
-            float l, r;
-            l = (float)(((value>>7)&0x7f)/127.0);
-            r = (float)((value&0x7f)/127.0);
-            wm8960->volume(l,r);
-        }
-        break;
-
-    case MIDI_NRPN_WM8960_HEADPHONE_VOLUME:
-        if (wm8960) {
-            float l, r;
-            l = (float)(((value>>7)&0x7f)/127.0);
-            r = (float)((value&0x7f)/127.0);
-            wm8960->headphoneVolume(l,r);
-        }
-        break;
-
-    case MIDI_NRPN_WM8960_HEADPHONE_POWER:
-        if (wm8960) wm8960->headphonePower(value);
-        break;
-
-    case MIDI_NRPN_WM8960_SPEAKER_VOLUME:
-        if (wm8960) {
-            float l, r;
-            l = (float)(((value>>7)&0x7f)/127.0);
-            r = (float)((value&0x7f)/127.0);
-            wm8960->speakerVolume(l,r);
-        }
-        break;
-
-    case MIDI_NRPN_WM8960_SPEAKER_POWER:
-        if (wm8960) wm8960->speakerPower(value);
-        break;
-
-    case MIDI_NRPN_WM8960_DISABLE_ADCHPF:
-        if (wm8960) wm8960->disableADCHPF(value);
-        break;
-
-    case MIDI_NRPN_WM8960_ENABLE_MICBIAS:
-        if (wm8960) wm8960->enableMicBias(value);
-        break;
-
-    case MIDI_NRPN_WM8960_ENABLE_ALC:
-        if (wm8960) wm8960->enableALC(value);
-        break;
-
-    case MIDI_NRPN_WM8960_MIC_POWER:
-        if (wm8960) wm8960->micPower(value);
-        break;
-
-    case MIDI_NRPN_WM8960_LINEIN_POWER:
-        if (wm8960) wm8960->lineinPower(value);
-        break;
-
-    case MIDI_NRPN_WM8960_RAW_MASK:
-        wm8960_raw_mask = value & 0x1ff;
-        break;
-
-    case MIDI_NRPN_WM8960_RAW_DATA:
-        wm8960_raw_data = value & 0x1ff;
-        break;
-
-    case MIDI_NRPN_WM8960_RAW_WRITE:
-        if (wm8960 && wm8960_raw_mask >= 0 && wm8960_raw_data >= 0) {
-            wm8960->write(value & 0x3f, wm8960_raw_data, wm8960_raw_mask, (value & 0x40) != 0);
-        }
-        wm8960_raw_mask = -1;
-        wm8960_raw_data = -1;
-        break;
-    default: break;
+    default: 
+	process_nrpn(nrpn, value);
+	break;
    }
 }
 
