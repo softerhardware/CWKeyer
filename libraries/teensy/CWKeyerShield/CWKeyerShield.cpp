@@ -183,6 +183,19 @@ void CWKeyerShield::monitor_ptt(void)
     }
 }
 
+
+void CWKeyerShield::process_nrpn(void)
+{
+    switch(nrpn_cc) {
+
+
+    default:
+        break;
+
+    }
+}
+
+
 void CWKeyerShield::midi(void)
 {
     uint cmd, data;
@@ -197,233 +210,113 @@ void CWKeyerShield::midi(void)
         if (usbMIDI.getType() == usbMIDI.ControlChange) {
             cmd  = usbMIDI.getData1();
             data = usbMIDI.getData2();
-            data = data & 0x7F; // paranoia
-        //Serial.print("MIDI ");
-        //Serial.print(usbMIDI.getChannel());
-        //Serial.print(" ");
-        //Serial.print(midi_channel);
-        //Serial.print(" ");
-        //Serial.print(cmd);
-        //Serial.print(" ");
-        //Serial.println(data);
+
+            //Serial.print("MIDI ");
+            //Serial.print(usbMIDI.getChannel());
+            //Serial.print(" ");
+            //Serial.print(midi_channel);
+            //Serial.print(" ");
+            //Serial.print(cmd);
+            //Serial.print(" ");
+            //Serial.println(data);
 
 
-        // Accept setting of control channel on any channel
-        if (cmd == MIDI_SET_CHANNEL) {
-            if (data > 16) data=0;
-            set_midi_channel(data);
-        }
-
-        if (usbMIDI.getChannel() == midi_channel) {
-            ctrls[cmd] = data;
-            switch(cmd) {
-                case MIDI_SET_A:
-                    accum_a = data;
-                    break;
-
-                case MIDI_SET_B:
-                    accum_b = data;
-                    break;
-
-                case MIDI_SET_C:
-                    accum_c = data;
-                    break;
-
-                case MIDI_MASTER_VOLUME:
-                    mastervolume(data);
-                    break;
-
-                case MIDI_SIDETONE_VOLUME:
-                    sidetonevolume(data);
-                    break;
-
-                case MIDI_CW_SPEED:
-                    if (data < 1) data=1;
-                    speed_set(data);  // report to keyer
-                    cwspeed(data);    // report to radio (and MIDI controller)
-                    break;
-
-                case MIDI_SIDETONE_FREQUENCY:
-                    sidetonefrequency(data);
-                    break;
-
-                case MIDI_ENABLE_POTS:
-                    enable_pots = (data != 0);
-                    break;
-
-                case MIDI_KEYER_AUTOPTT:
-                    // auto-PTT by the keyer allowed(data!=0) or disabled (data==0)
-                    keyer_autoptt_set(data != 0);  // report to keyer
-                    break;
-
-                case MIDI_KEYER_LEADIN:
-                    // if keyer auto-PTT: lead-in is (10*data) milliseconds
-                    keyer_leadin_set(data); // report to keyer
-                    break;
-
-                case MIDI_KEYER_HANG:
-                    // if keyer auto-PTT: data=PTT hang time in *dot lengths*
-                    keyer_hang_set(data); // report to keyer
-                    break;
-
-                case MIDI_RESPONSE:
-                    midi_controller_response = (data != 0);
-                    break;
-
-                case MIDI_MUTE_CWPTT:
-                    mute_on_cwptt = (data != 0);
-                    break;
-
-                case MIDI_MICPTT_HWPTT:
-                    micptt_hwptt = (data != 0);
-                    break;
-
-                case MIDI_CWPTT_HWPTT:
-                    cwptt_hwptt = (data != 0);
-                    break;
-
-                case MIDI_KEYDOWN_NOTE:
-                    //
-                    // This is an incoming message from a controller.
-                    // It can be used to trigger Key-down, for example,
-                    // to implement a "Tune" button in the MIDI controller
-                    //
-                    key(data != 0);
-                    break;
-
-                case MIDI_PTT_NOTE:
-                    //
-                    // This is an incoming message from a controller.
-                    // It can be used to trigger PTT
-                    //
-                    cwptt(data != 0);
-                    break;
-                    
-                case MIDI_SET_CHANNEL:
-                    //
-                    // If the value is zero or > 16, 
-                    // this will switch off *all* communication
-                    // on the "radio" channel
-                    //
-                    if (data > 16) data=0;
-                    midi_channel = data;
-                    break;
-
-                case MIDI_WM8960_ENABLE:
-                    if (wm8960) {
-                        if (data != 0) wm8960->enable();
-                        else wm8960->disable();
-                    }
-                    break;
-
-                case MIDI_WM8960_INPUT_LEVEL:
-                    if (wm8960) {
-                        float v;
-                        v = (float)data/127.0;
-                        // accumulator A is right if set, otherwise value is for both
-                        if (accum_a >= 0) wm8960->inputLevel( v, (float)accum_a/127.0);
-                        else wm8960->inputLevel(v,v);
-                    }
-                    break;
-
-                case MIDI_WM8960_INPUT_SELECT:
-                    if (wm8960) wm8960->inputSelect(data);
-                    break;
-
-                case MIDI_WM8960_VOLUME:
-                    if (wm8960) {
-                        float v;
-                        v = (float)data/127.0;
-                        // accumulator A is right if set, otherwise value is for both
-                        if (accum_a >= 0) wm8960->volume( v, (float)accum_a/127.0);
-                        else wm8960->volume(v,v);
-                    }
-                    break;
-
-                case MIDI_WM8960_HEADPHONE_VOLUME:
-                    if (wm8960) {
-                        float v;
-                        v = (float)data/127.0;
-                        // accumulator A is right if set, otherwise value is for both
-                        if (accum_a >= 0) wm8960->headphoneVolume( v, (float)accum_a/127.0);
-                        else wm8960->headphoneVolume(v,v);
-                    }
-                    break;
-
-                case MIDI_WM8960_HEADPHONE_POWER:
-                    if (wm8960) wm8960->headphonePower(data);
-                    break;
-
-                case MIDI_WM8960_SPEAKER_VOLUME:
-                    if (wm8960) {
-                        float v;
-                        v = (float)data/127.0;
-                        // accumulator A is right if set, otherwise value is for both
-                        if (accum_a >= 0) wm8960->speakerVolume( v, (float)accum_a/127.0);
-                        else wm8960->speakerVolume(v,v);
-                    }
-                    break;
-
-                case MIDI_WM8960_SPEAKER_POWER:
-                    if (wm8960) wm8960->speakerPower(data);
-                    break;
-
-                case MIDI_WM8960_DISABLE_ADCHPF:
-                    if (wm8960) wm8960->disableADCHPF(data);
-                    break;
-
-                case MIDI_WM8960_ENABLE_MICBIAS:
-                    if (wm8960) wm8960->enableMicBias(data);
-                    break;
-
-                case MIDI_WM8960_ENABLE_ALC:
-                    if (wm8960) wm8960->enableALC(data);
-                    break;
-
-                case MIDI_WM8960_MIC_POWER:
-                    if (wm8960) wm8960->micPower(data);
-                    break;
-
-                case MIDI_WM8960_LINEIN_POWER:
-                    if (wm8960) wm8960->lineinPower(data);
-                    break;
-
-                case MIDI_WM8960_RAW_WRITE:
-                    if (wm8960 && accum_a >= 0 && accum_b >= 0 && accum_c >= 0) {
-                        uint16_t val;
-                        uint16_t mask;
-
-                        val = accum_a | ((accum_c & 0b011) << 7);
-                        mask = accum_b | ((accum_c & 0b01100) << 5);
-
-                        // reg is never more than 6bits so use data
-                        wm8960->write(data, val, mask, (accum_c & 0b010000) != 0);
-
-                    }
-                    break;
-                case MIDI_MSB:  /* Data Entry (MSB) */
-                    break;
-                case MIDI_LSB:  /* Data Entry (LSB) */
-                    nrpn_set((ctrls[MIDI_NRPN_MSB]<<7)|ctrls[MIDI_NRPN_LSB],
-                             (ctrls[MIDI_MSB]<<7)|ctrls[MIDI_LSB]);
-                    break;
-                case MIDI_NRPN_MSB:     /* Non-registered Parameter (MSB) */
-                    break;
-                case MIDI_NRPN_LSB:     /* Non-registered Parameter (LSB) */
-                    break;
-                default:
-                    break;
+            // Accept setting of control channel on any channel
+            if (cmd == MIDI_SET_CHANNEL) {
+                if (data > 16) data=0;
+                set_midi_channel(data);
             }
 
-            if (cmd > MIDI_SET_C) {
-                // Reset accumulators
-                accum_a = -1;
-                accum_b = -1;
-                accum_c = -1;
+            if (usbMIDI.getChannel() == midi_channel) {
+		ctrls[cmd] = data;
+                switch(cmd) {
+                    case MIDI_NRPN_CC_MSB:
+                        break;
+                    case MIDI_NRPN_CC_LSB:
+                        break;
+                    case MIDI_NRPN_VAL_MSB:
+                        break;
+                    case MIDI_NRPN_VAL_LSB:                        // Writing LSB value triggers NRPN call
+			nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
+                             (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_MIDI_NRPN_VAL_LSB]);
+                        break;
+
+                    case MIDI_MASTER_VOLUME:
+                        mastervolume(data);
+                        break;
+
+                    case MIDI_SIDETONE_VOLUME:
+                        sidetonevolume(data);
+                        break;
+
+                    case MIDI_SIDETONE_FREQUENCY:
+                        sidetonefrequency(data);
+                        break;
+
+                    case MIDI_CW_SPEED:
+                        if (data < 1) data=1;
+                        speed_set(data);  // report to keyer
+                        cwspeed(data);    // report to radio (and MIDI controller)
+                        break;
+
+                    case MIDI_ENABLE_POTS:
+                        enable_pots = (data != 0);
+                        break;
+
+                    case MIDI_RESPONSE:
+                        midi_controller_response = (data != 0);
+                        break;
+
+                    case MIDI_KEYER_AUTOPTT:
+                        // auto-PTT by the keyer allowed(data!=0) or disabled (data==0)
+                        keyer_autoptt_set(data != 0);  // report to keyer
+                        break;
+
+                    case MIDI_KEYER_LEADIN:
+                        // if keyer auto-PTT: lead-in is (10*data) milliseconds
+                        keyer_leadin_set(data); // report to keyer
+                        break;
+
+                    case MIDI_KEYER_HANG:
+                        // if keyer auto-PTT: data=PTT hang time in *dot lengths*
+                        keyer_hang_set(data); // report to keyer
+                        break;
+
+                    case MIDI_MUTE_CWPTT:
+                        mute_on_cwptt = (data != 0);
+                        break;
+
+                    case MIDI_MICPTT_HWPTT:
+                        micptt_hwptt = (data != 0);
+                        break;
+
+                    case MIDI_CWPTT_HWPTT:
+                        cwptt_hwptt = (data != 0);
+                        break;
+
+                    case MIDI_KEYDOWN_NOTE:
+                        //
+                        // This is an incoming message from a controller.
+                        // It can be used to trigger Key-down, for example,
+                        // to implement a "Tune" button in the MIDI controller
+                        //
+                        key(data != 0);
+                        break;
+
+                    case MIDI_PTT_NOTE:
+                        //
+                        // This is an incoming message from a controller.
+                        // It can be used to trigger PTT
+                        //
+                        cwptt(data != 0);
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
     }
-}
 }
 
 void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
@@ -451,6 +344,96 @@ void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
 	if ( ! nrpn_is_valid(value)) return;
 	nrpns[value] = NRPNV_NOTSET;
 	break;
+    case MIDI_NRPN_WM8960_ENABLE:
+        if (wm8960) {
+            if (value != 0) wm8960->enable();
+            else wm8960->disable();
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_INPUT_SELECT:
+        if (wm8960) wm8960->inputSelect(value);
+        break;
+
+    case MIDI_NRPN_WM8960_INPUT_LEVEL:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((value>>7)&0x7f)/127.0);
+            r = (float)((value&0x7f)/127.0);
+            wm8960->inputLevel(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((value>>7)&0x7f)/127.0);
+            r = (float)((value&0x7f)/127.0);
+            wm8960->volume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_HEADPHONE_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((value>>7)&0x7f)/127.0);
+            r = (float)((value&0x7f)/127.0);
+            wm8960->headphoneVolume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_HEADPHONE_POWER:
+        if (wm8960) wm8960->headphonePower(value);
+        break;
+
+    case MIDI_NRPN_WM8960_SPEAKER_VOLUME:
+        if (wm8960) {
+            float l, r;
+            l = (float)(((value>>7)&0x7f)/127.0);
+            r = (float)((value&0x7f)/127.0);
+            wm8960->speakerVolume(l,r);
+        }
+        break;
+
+    case MIDI_NRPN_WM8960_SPEAKER_POWER:
+        if (wm8960) wm8960->speakerPower(value);
+        break;
+
+    case MIDI_NRPN_WM8960_DISABLE_ADCHPF:
+        if (wm8960) wm8960->disableADCHPF(value);
+        break;
+
+    case MIDI_NRPN_WM8960_ENABLE_MICBIAS:
+        if (wm8960) wm8960->enableMicBias(value);
+        break;
+
+    case MIDI_NRPN_WM8960_ENABLE_ALC:
+        if (wm8960) wm8960->enableALC(value);
+        break;
+
+    case MIDI_NRPN_WM8960_MIC_POWER:
+        if (wm8960) wm8960->micPower(value);
+        break;
+
+    case MIDI_NRPN_WM8960_LINEIN_POWER:
+        if (wm8960) wm8960->lineinPower(value);
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_MASK:
+        wm8960_raw_mask = value & 0x1ff;
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_DATA:
+        wm8960_raw_data = value & 0x1ff;
+        break;
+
+    case MIDI_NRPN_WM8960_RAW_WRITE:
+        if (wm8960 && wm8960_raw_mask >= 0 && wm8960_raw_data >= 0) {
+            wm8960->write(value & 0x3f, wm8960_raw_data, wm8960_raw_mask, (value & 0x40) != 0);
+        }
+        wm8960_raw_mask = -1;
+        wm8960_raw_data = -1;
+        break;
     default: break;
    }
 }
