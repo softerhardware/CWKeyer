@@ -191,10 +191,10 @@ public:
     }
 
     int8_t ctrls[128];          // current values of controls
-    const unsigned NNRPN = 128;	// number of NRPNs maintained
+    static const unsigned NNRPN = 128;	// number of NRPNs maintained
     int16_t nrpns[NNRPN];         // current values of NRPNs
     void nrpn_init(void) {
-	for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpn[nrpn] = NRPNV_NOTSET;
+	for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpns[nrpn] = NRPNV_NOTSET;
     }
     void nrpn_set(const int16_t nrpn, const int16_t value);
     void nrpn_send(const int16_t nrpn) {
@@ -230,7 +230,7 @@ private:
     void midi(void);                                            // MIDI loop
     void pots(void);                                            // Potentiometer loop
     void adjust(void);                                          // slowly adjust SideTone/Master volume
-    void process_nrpn(void);                                    // Process NRPN midi messages
+    void process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val); // Process NRPN midi messages
     AudioSynthWaveformSine  sine;               // free-running side tone oscillator
     AudioInputUSB           usbaudioinput;      // Audio in from Computer
     AudioOutputUSB          usbaudiooutput;     // Audio out to Computer

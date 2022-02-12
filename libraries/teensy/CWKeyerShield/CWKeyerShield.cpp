@@ -328,7 +328,7 @@ void CWKeyerShield::midi(void)
                         break;
                     case MIDI_NRPN_VAL_LSB: // Writing LSB value triggers NRPN call
 			nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
-                             (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_MIDI_NRPN_VAL_LSB]);
+                             (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_NRPN_VAL_LSB]);
                         break;
 
                     case MIDI_MASTER_VOLUME:
