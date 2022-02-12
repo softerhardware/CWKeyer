@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-basic-offset: 4 -*- */
 /* SofterHardwareCWKeyerShield for Teensy 4.X
  * Copyright (c) 2021, kf7o, Steve Haynal, steve@softerhardware.com
  *
@@ -57,6 +58,7 @@ enum midi_control_selection {
 
   MIDI_MASTER_VOLUME            = 4,     // set master volume
   MIDI_SIDETONE_VOLUME          = 5,     // set sidetone volume
+  MIDI_MSB                      = 6,     // most significant byte of NRPN value
   MIDI_CW_SPEED                 = 7,     // set CW speed
   MIDI_SIDETONE_FREQUENCY       = 8,     // set sidetone frequency
   MIDI_ENABLE_POTS              = 9,     // enable/disable potentiometers
@@ -84,9 +86,29 @@ enum midi_control_selection {
   MIDI_WM8960_ENABLE_ALC        = 30,
   MIDI_WM8960_MIC_POWER         = 31,
   MIDI_WM8960_LINEIN_POWER      = 33,
-  MIDI_WM8960_RAW_WRITE         = 34
+  MIDI_WM8960_RAW_WRITE         = 34,
+
+  MIDI_LSB                      = 38,   // least significant byte of NRPN value
+
+  MIDI_NRPN_LSB                 = 98,   // least significant byte of NRPN number
+  MIDI_NRPN_MSB                 = 99    // most significant  byte of NRPN number
 };
 
+enum midi_nrpn_values {
+    NRPNV_NOTSET = -1,          // initialized value of NRPNs, not a legal value
+    NRPNV_ID_KEYER = 0x50F,     // SOFterharderware, only 14 bits
+    NRPNV_ID_VERSION = 101
+};
+
+enum midi_nrpn_selection {
+    NRPN_NOTHING,               // not a nrpn nrpn value, where a null pointer is needed
+    NRPN_ID_KEYER,              // identify this keyer for the correspondent
+    NRPN_ID_VERSION,            // identify this keyer version for the correspondent
+    NRPN_NNRPN,                 // return how many NRPNs are allocated
+    NRPN_NRPN_QUERY,            // take the value as a nrpn number and send that nrpns value, no response if no value set
+    NRPN_NRPN_UNSET             // take the value as a nrpn number and make that nrpn NRPNV_NOTSET
+};
+  
 //
 // The hardware setup (digital and analog I/O lines, which audio system to use)
 // is passed as a parameter to the constructor.
@@ -157,6 +179,21 @@ public:
         patchusboutl = new AudioConnection(*audioin, 0, usbaudiooutput, 0);
         patchusboutr = new AudioConnection(*audioin, 1, usbaudiooutput, 1);
       }
+    }
+
+    int8_t ctrls[128];          // current values of controls
+    const unsigned NNRPN = 128;	// number of NRPNs maintained
+    int16_t nrpns[128];         // current values of NRPNs
+    void nrpn_set(const int16_t nrpn, const int16_t value);
+    void nrpn_send(const int16_t nrpn) {
+	usbMIDI.beginNrpn(nrpn, midi_channel);
+	usbMIDI.sendNrpnValue(nrpns[nrpn], midi_channel);
+    }
+    bool nrpn_is_valid(const int16_t nrpn) { // nrpn number is in range
+	return ((unsigned)nrpn) < NNRPN;
+    }
+    bool nrpn_is_set(const int16_t nrpn) { // nrpn value has been set
+	return nrpn_is_valid(nrpn) && nrpns[nrpn] != NRPNV_NOTSET;
     }
 
     void setup(void);                                           // to be executed once upon startup

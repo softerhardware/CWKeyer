@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-basic-offset: 4 -*- */
 /* SofterHardwareCWKeyerShield for Teensy 4.X
  * Copyright (c) 2021-2022, kf7o, Steve Haynal, steve@softerhardware.com
  *
@@ -197,7 +198,6 @@ void CWKeyerShield::midi(void)
             cmd  = usbMIDI.getData1();
             data = usbMIDI.getData2();
             data = data & 0x7F; // paranoia
-
         //Serial.print("MIDI ");
         //Serial.print(usbMIDI.getChannel());
         //Serial.print(" ");
@@ -215,6 +215,7 @@ void CWKeyerShield::midi(void)
         }
 
         if (usbMIDI.getChannel() == midi_channel) {
+            ctrls[cmd] = data;
             switch(cmd) {
                 case MIDI_SET_A:
                     accum_a = data;
@@ -400,7 +401,16 @@ void CWKeyerShield::midi(void)
 
                     }
                     break;
-
+                case MIDI_MSB:  /* Data Entry (MSB) */
+                    break;
+                case MIDI_LSB:  /* Data Entry (LSB) */
+                    nrpn_set((ctrls[MIDI_NRPN_MSB]<<7)|ctrls[MIDI_NRPN_LSB],
+                             (ctrls[MIDI_MSB]<<7)|ctrls[MIDI_LSB]);
+                    break;
+                case MIDI_NRPN_MSB:     /* Non-registered Parameter (MSB) */
+                    break;
+                case MIDI_NRPN_LSB:     /* Non-registered Parameter (LSB) */
+                    break;
                 default:
                     break;
             }
@@ -414,6 +424,35 @@ void CWKeyerShield::midi(void)
         }
     }
 }
+}
+
+void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
+    if ( ! nrpn_is_valid(nrpn)) return;
+    nrpns[nrpn] = value;
+    switch (nrpn) {
+    case NRPN_ID_KEYER:
+	nrpns[nrpn] = NRPNV_ID_KEYER; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_ID_VERSION: 
+	nrpns[nrpn] = NRPNV_ID_VERSION; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_NNRPN:
+	nrpns[nrpn] = NNRPN; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_NRPN_QUERY:
+	if ( ! nrpn_is_valid(value)) return;
+	if ( ! nrpn_is_set(value)) return;
+	nrpn_send(value);
+	break;
+    case NRPN_NRPN_UNSET:
+	if ( ! nrpn_is_valid(value)) return;
+	nrpns[value] = NRPNV_NOTSET;
+	break;
+    default: break;
+   }
 }
 
 void CWKeyerShield::pots()
