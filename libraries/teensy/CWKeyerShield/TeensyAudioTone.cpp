@@ -136,8 +136,9 @@ const int32_t window_table[WINDOW_TABLE_LENGTH] = {
 void TeensyAudioTone::update(void)
 {
     audio_block_t *block_sine, *block_inl, *block_inr;
-    audio_block_t *block_sidetone;
-    int16_t i, t;
+    audio_block_t *block_sidel,*block_sider;
+    int16_t i;
+    int16_t t;
 
 
     block_inl  = receiveReadOnly(0);
@@ -145,16 +146,17 @@ void TeensyAudioTone::update(void)
     block_sine = receiveReadOnly(2);
 
     //
-    // Use block_sidetone as a "flag" for "playing side tone"
+    // Use block_side[lr] as a "flag" for "playing side tone"
     // This guarantees that we do not "hang" in the "window_index > 0" state
-    // if allocation of block_sidetone constantly fails.
+    // if allocation of block_side[lr] constantly fails.
     //
-    block_sidetone=NULL;
+    block_sidel = block_sider = NULL;
     if ((tone || windowindex || mute) && block_sine && sidetone_enabled) {
-      block_sidetone=allocate();
+      block_sidel=allocate();
+      block_sider=allocate();
     }
 
-    if (block_sidetone){
+    if (block_sidel && block_sider){
         if (tone) {
             // Apply ramp up window and/or send tone to both outputs
             for (i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
@@ -163,7 +165,16 @@ void TeensyAudioTone::update(void)
                 } else {
                     t = block_sine->data[i];
                 }
-                block_sidetone->data[i]=t;
+                if (block_inl) {
+                  block_sidel->data[i]=(t+block_inl->data[i]);
+                } else {
+                  block_sidel->data[i]=t;
+                }
+                if (block_inr) {
+                  block_sider->data[i]=(t+block_inr->data[i]);
+                } else {
+                  block_sider->data[i]=t;
+                }
             }
         } else if (windowindex) {
             // Apply ramp down until 0 window index
@@ -174,24 +185,35 @@ void TeensyAudioTone::update(void)
                 } else {
                     t = 0;
                 }
-                block_sidetone->data[i] = t;
+                if (block_inl) {
+                  block_sidel->data[i]=(t+block_inl->data[i]);
+                } else {
+                  block_sidel->data[i]=t;
+                }
+                if (block_inr) {
+                  block_sider->data[i]=(t+block_inr->data[i]);
+                } else {
+                  block_sider->data[i]=t;
+                }
             }
         } else {
           //
           // mute set but not within a "window": send silence
-      //
+          //
           // NOTE: in the very un-probable case that tone == windowindex == mute == 0,
           //       (since there was a spike on "tone")
           //       we also arrive here and send one block of silence
           //
           for (i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-            block_sidetone->data[i] = 0;
+            block_sider->data[i] = 0;
+            block_sidel->data[i] = 0;
           }
         }
         // Use same data for both ears
-        transmit(block_sidetone,0);
-        transmit(block_sidetone,1);
-        release(block_sidetone);
+        transmit(block_sidel,0);
+        transmit(block_sider,1);
+        release(block_sidel);
+        release(block_sider);
     } else {
 
         windowindex = tone = mute = 0;  // just in case we arrive here because of a failed allocation
