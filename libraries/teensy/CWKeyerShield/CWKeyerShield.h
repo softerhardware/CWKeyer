@@ -50,42 +50,65 @@ void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*)
 // Note that MIDI_KEYDOWN_NOTE and MIDI_PTT_NOTE can be processed as "controllers"
 // in the input section, but will be used as "notes" when emitted.
 //
+
 enum midi_control_selection {
-  MIDI_SET_A                    = 1,     // Set 7-bit accumulator A
-  MIDI_SET_B                    = 2,     // Set 7-bit accumulator B
-  MIDI_SET_C                    = 3,     // Set 7-bit accumulator C
 
-  MIDI_MASTER_VOLUME            = 4,     // set master volume
-  MIDI_SIDETONE_VOLUME          = 5,     // set sidetone volume
-  MIDI_CW_SPEED                 = 7,     // set CW speed
-  MIDI_SIDETONE_FREQUENCY       = 8,     // set sidetone frequency
-  MIDI_ENABLE_POTS              = 9,     // enable/disable potentiometers
-  MIDI_KEYER_AUTOPTT            = 10,     // enable/disable auto-PTT from CW keyer
-  MIDI_KEYER_LEADIN             = 11,    // set Keyer lead-in time (if auto-PTT active)
-  MIDI_KEYER_HANG               = 12,    // set Keyer hang time (if auto-PTT active)
-  MIDI_RESPONSE                 = 13,    // enable/disable reporting back to MIDI controller
-  MIDI_MUTE_CWPTT               = 14,    // enable/disable muting of RX audio during auto-PTT
-  MIDI_MICPTT_HWPTT             = 15,    // enable/disable that MICIN triggers the hardware PTT output
-  MIDI_CWPTT_HWPTT              = 16,    // enable/disable that CWPTT triggers the hardware PTT output
-  MIDI_KEYDOWN_NOTE             = 17,    // MIDI note for key-down
-  MIDI_PTT_NOTE                 = 18,    // MIDI note for PTT activation
-  MIDI_SET_CHANNEL              = 19,    // set MIDI channel to/from controller
+    MIDI_NRPN_CC_MSB              = 99,
+    MIDI_NRPN_CC_LSB              = 98,
+    MIDI_NRPN_VAL_MSB             = 6,
+    MIDI_NRPN_VAL_LSB             = 38,
 
-  MIDI_WM8960_ENABLE            = 20,
-  MIDI_WM8960_INPUT_LEVEL       = 21,
-  MIDI_WM8960_INPUT_SELECT      = 22,
-  MIDI_WM8960_VOLUME            = 23,
-  MIDI_WM8960_HEADPHONE_VOLUME  = 24,
-  MIDI_WM8960_HEADPHONE_POWER   = 25,
-  MIDI_WM8960_SPEAKER_VOLUME    = 26,
-  MIDI_WM8960_SPEAKER_POWER     = 27,
-  MIDI_WM8960_DISABLE_ADCHPF    = 28,
-  MIDI_WM8960_ENABLE_MICBIAS    = 29,
-  MIDI_WM8960_ENABLE_ALC        = 30,
-  MIDI_WM8960_MIC_POWER         = 31,
-  MIDI_WM8960_LINEIN_POWER      = 33,
-  MIDI_WM8960_RAW_WRITE         = 34
+    //TODO: Change this
+    MIDI_PTT_NOTE                 = 18,
+    MIDI_KEYDOWN_NOTE             = 17,
+
+    MIDI_MASTER_VOLUME            = 7,      // set master volume
+    MIDI_MASTER_BALANCE           = 8,      //TODO: stereo balance
+    MIDI_MASTER_PAN               = 10,     //TODO: stereo position of CW tone
+
+    MIDI_SIDETONE_VOLUME          = 12,     // set sidetone volume
+    MIDI_SIDETONE_FREQUENCY       = 13,     // set sidetone frequency
+
+    MIDI_INPUT_LEVEL              = 16,     //TODO:
+
+    MIDI_ENABLE_POTS              = 64,     // enable/disable potentiometers
+    MIDI_KEYER_AUTOPTT            = 65,     // enable/disable auto-PTT from CW keyer
+    MIDI_RESPONSE                 = 66,     // enable/disable reporting back to SDR and MIDI controller
+    MIDI_MUTE_CWPTT               = 67,     // enable/disable muting of RX audio during auto-PTT
+    MIDI_MICPTT_HWPTT             = 68,     // enable/disable that MICIN triggers the hardware PTT output
+    MIDI_CWPTT_HWPTT              = 69,     // enable/disable that CWPTT triggers the hardware PTT output
+
+    MIDI_KEYER_HANG               = 72,     // set Keyer hang time (if auto-PTT active)
+    MIDI_KEYER_LEADIN             = 73,     // set Keyer lead-in time (if auto-PTT active)
+    MIDI_CW_SPEED                 = 74,     // set CW speed
+    MIDI_INPUT_SELECT             = 75,     //TODO:
+    MIDI_SET_CHANNEL              = 119     // Change the default channel to use
 };
+
+
+// To do select note values other than default
+enum midi_nrpn_selection {
+    MIDI_NRNN_NOTHING                  = 0,     // TODO:
+    MIDI_NRPN_ID_KEYER                 = 1,     // TODO:
+    MIDI_NRPN_ID_VERSION               = 2,     // TODO:
+    MIDI_NRPN_WM8960_ENABLE            = 11,
+    MIDI_NRPN_WM8960_INPUT_LEVEL       = 12,
+    MIDI_NRPN_WM8960_INPUT_SELECT      = 13,
+    MIDI_NRPN_WM8960_VOLUME            = 14,
+    MIDI_NRPN_WM8960_HEADPHONE_VOLUME  = 15,
+    MIDI_NRPN_WM8960_HEADPHONE_POWER   = 16,
+    MIDI_NRPN_WM8960_SPEAKER_VOLUME    = 17,
+    MIDI_NRPN_WM8960_SPEAKER_POWER     = 18,
+    MIDI_NRPN_WM8960_DISABLE_ADCHPF    = 19,
+    MIDI_NRPN_WM8960_ENABLE_MICBIAS    = 20,
+    MIDI_NRPN_WM8960_ENABLE_ALC        = 21,
+    MIDI_NRPN_WM8960_MIC_POWER         = 22,
+    MIDI_NRPN_WM8960_LINEIN_POWER      = 23,
+    MIDI_NRPN_WM8960_RAW_MASK          = 24,
+    MIDI_NRPN_WM8960_RAW_DATA          = 25,
+    MIDI_NRPN_WM8960_RAW_WRITE         = 26
+};
+
 
 //
 // The hardware setup (digital and analog I/O lines, which audio system to use)
@@ -176,12 +199,12 @@ public:
     void set_cwptt_mute_option(int v)    { mute_on_cwptt = v; }
     void set_midi_channel(int v)         { midi_channel  = v; }
 
-
 private:
     void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
     void midi(void);                                            // MIDI loop
     void pots(void);                                            // Potentiometer loop
     void adjust(void);                                          // slowly adjust SideTone/Master volume
+    void process_nrpn(void);                                    // Process NRPN midi messages
 
     AudioSynthWaveformSine  sine;               // free-running side tone oscillator
     AudioInputUSB           usbaudioinput;      // Audio in from Computer
@@ -273,11 +296,11 @@ private:
     uint8_t       last_ptt_in = 0;          // state of PTT-in line
     uint8_t       ptt_state = 0;            // PTT state
 
-
     // Accumulators for MIDI commands with multiple data
-    int8_t accum_a = 0;
-    int8_t accum_b = 0;
-    int8_t accum_c = 0;
+    int16_t nrpn_cc = 0;
+    int16_t nrpn_val = 0;
+    int16_t wm8960_raw_mask = -1;
+    int16_t wm8960_raw_data = -1;
 
     //
     // Variables for the "continuous" adjustment of side tone and master volume.
