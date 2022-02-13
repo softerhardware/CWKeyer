@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-basic-offset: 4 -*- */
 /* SofterHardwareCWKeyerShield for Teensy 4.X
  * Copyright (c) 2021-2022, kf7o, Steve Haynal, steve@softerhardware.com
  *
@@ -183,7 +184,7 @@ void CWKeyerShield::monitor_ptt(void)
 }
 
 
-void CWKeyerShield::process_nrpn(void)
+void CWKeyerShield::process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val)
 {
     switch(nrpn_cc) {
 
@@ -317,24 +318,17 @@ void CWKeyerShield::midi(void)
             }
 
             if (usbMIDI.getChannel() == midi_channel) {
+		ctrls[cmd] = data; // ctrls[cmd] is the definitive value
                 switch(cmd) {
-                    case MIDI_NRPN_CC_MSB:
-                        nrpn_cc = nrpn_cc & 0x7f;
-                        nrpn_cc = nrpn_cc | (data << 7);
+                    case MIDI_NRPN_CC_MSB: // ctrls[MIDI_NRPN_CC_MSB] is already set
                         break;
-                    case MIDI_NRPN_CC_LSB:
-                        nrpn_cc = nrpn_cc & (0x7f << 7);
-                        nrpn_cc = nrpn_cc | data;
+                    case MIDI_NRPN_CC_LSB: // ctrls[MIDI_NRPN_CC_LSB] is already set
                         break;
-                    case MIDI_NRPN_VAL_MSB:
-                        nrpn_val = nrpn_val & 0x7f;
-                        nrpn_val = nrpn_val | (data << 7);
+                    case MIDI_NRPN_VAL_MSB: // ctrls[MIDI_NRPN_VAL_MSB] is already set
                         break;
-                    case MIDI_NRPN_VAL_LSB:
-                        nrpn_val = nrpn_val & (0x7f << 7);
-                        nrpn_val = nrpn_val | data;
-                        // Writing LSB value triggers NRPN call
-                        process_nrpn();
+                    case MIDI_NRPN_VAL_LSB: // Writing LSB value triggers NRPN call
+			nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
+                             (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_NRPN_VAL_LSB]);
                         break;
 
                     case MIDI_MASTER_VOLUME:
@@ -413,6 +407,38 @@ void CWKeyerShield::midi(void)
             }
         }
     }
+}
+
+void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
+    if ( ! nrpn_is_valid(nrpn)) return;
+    nrpns[nrpn] = value;
+    switch (nrpn) {
+    case NRPN_ID_KEYER:
+	nrpns[nrpn] = NRPNV_ID_KEYER; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_ID_VERSION: 
+	nrpns[nrpn] = NRPNV_ID_VERSION; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_NNRPN:
+	nrpns[nrpn] = NNRPN; // correct nrpn value
+	nrpn_send(nrpn);
+	break;
+    case NRPN_NRPN_QUERY:
+	if ( ! nrpn_is_valid(value)) return;
+	if ( ! nrpn_is_set(value)) return;
+	nrpn_send(value);
+	break;
+    case NRPN_NRPN_UNSET:
+	if ( ! nrpn_is_valid(value)) return;
+	nrpns[value] = NRPNV_NOTSET;
+	break;
+
+    default: 
+	process_nrpn(nrpn, value);
+	break;
+   }
 }
 
 void CWKeyerShield::pots()

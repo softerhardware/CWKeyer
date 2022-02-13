@@ -1,3 +1,4 @@
+/* -*- mode: c++; c-basic-offset: 4 -*- */
 /* SofterHardwareCWKeyerShield for Teensy 4.X
  * Copyright (c) 2021, kf7o, Steve Haynal, steve@softerhardware.com
  *
@@ -85,12 +86,19 @@ enum midi_control_selection {
     MIDI_SET_CHANNEL              = 119     // Change the default channel to use
 };
 
+enum midi_nrpn_values {
+    NRPNV_NOTSET = -1,          // initialized value of NRPNs, not a legal value
+    NRPNV_ID_KEYER = 0x50F,     // SOFterharderware, only 14 bits
+    NRPNV_ID_VERSION = 101
+};
 
-// To do select note values other than default
 enum midi_nrpn_selection {
-    MIDI_NRNN_NOTHING                  = 0,     // TODO:
-    MIDI_NRPN_ID_KEYER                 = 1,     // TODO:
-    MIDI_NRPN_ID_VERSION               = 2,     // TODO:
+    NRPN_NOTHING = 0,               // not a nrpn nrpn value, where a null pointer is needed
+    NRPN_ID_KEYER = 1,              // identify this keyer for the correspondent
+    NRPN_ID_VERSION = 2,            // identify this keyer version for the correspondent
+    NRPN_NNRPN = 3,                 // return how many NRPNs are allocated
+    NRPN_NRPN_QUERY = 4,            // take the value as a nrpn number and send that nrpns value, no response if no value set
+    NRPN_NRPN_UNSET = 5,             // take the value as a nrpn number and make that nrpn NRPNV_NOTSET
     MIDI_NRPN_WM8960_ENABLE            = 11,
     MIDI_NRPN_WM8960_INPUT_LEVEL       = 12,
     MIDI_NRPN_WM8960_INPUT_SELECT      = 13,
@@ -108,8 +116,7 @@ enum midi_nrpn_selection {
     MIDI_NRPN_WM8960_RAW_DATA          = 25,
     MIDI_NRPN_WM8960_RAW_WRITE         = 26
 };
-
-
+  
 //
 // The hardware setup (digital and analog I/O lines, which audio system to use)
 // is passed as a parameter to the constructor.
@@ -134,6 +141,7 @@ public:
     patchinr (usbaudioinput,   1, teensyaudiotone, 1),
     patchwav (sine,            0, teensyaudiotone, 2)
     {
+      nrpn_init();		// because any of these could be aliases to nrpn values
       Pin_SideToneFrequency = pin_sidefreq;
       Pin_SideToneVolume    = pin_sidevol;
       Pin_MasterVolume      = pin_mastervol;
@@ -182,6 +190,24 @@ public:
       }
     }
 
+    int8_t ctrls[128];          // current values of controls
+    static const unsigned NNRPN = 128;	// number of NRPNs maintained
+    int16_t nrpns[NNRPN];         // current values of NRPNs
+    void nrpn_init(void) {
+	for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpns[nrpn] = NRPNV_NOTSET;
+    }
+    void nrpn_set(const int16_t nrpn, const int16_t value);
+    void nrpn_send(const int16_t nrpn) {
+	usbMIDI.beginNrpn(nrpn, midi_channel);
+	usbMIDI.sendNrpnValue(nrpns[nrpn], midi_channel);
+    }
+    bool nrpn_is_valid(const int16_t nrpn) { // nrpn number is in range
+	return ((unsigned)nrpn) < NNRPN;
+    }
+    bool nrpn_is_set(const int16_t nrpn) { // nrpn value has been set
+	return nrpn_is_valid(nrpn) && nrpns[nrpn] != NRPNV_NOTSET;
+    }
+
     void setup(void);                                           // to be executed once upon startup
     void loop(void);                                            // to be executed at each heart beat
     void key(int state);                                        // CW Key up/down event
@@ -204,8 +230,7 @@ private:
     void midi(void);                                            // MIDI loop
     void pots(void);                                            // Potentiometer loop
     void adjust(void);                                          // slowly adjust SideTone/Master volume
-    void process_nrpn(void);                                    // Process NRPN midi messages
-
+    void process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val); // Process NRPN midi messages
     AudioSynthWaveformSine  sine;               // free-running side tone oscillator
     AudioInputUSB           usbaudioinput;      // Audio in from Computer
     AudioOutputUSB          usbaudiooutput;     // Audio out to Computer
