@@ -138,7 +138,7 @@ void TeensyAudioTone::update(void)
     audio_block_t *block_sine, *block_inl, *block_inr;
     audio_block_t *block_sidel,*block_sider;
     int16_t i;
-    int16_t t;
+    int32_t t;
 
 
     block_inl  = receiveReadOnly(0);
@@ -166,12 +166,12 @@ void TeensyAudioTone::update(void)
                     t = block_sine->data[i];
                 }
                 if (block_inl) {
-                  block_sidel->data[i]=(t+block_inl->data[i]);
+                  block_sidel->data[i]=(t+(int32_t)block_inl->data[i]) >> 1;
                 } else {
                   block_sidel->data[i]=t;
                 }
                 if (block_inr) {
-                  block_sider->data[i]=(t+block_inr->data[i]);
+                  block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
                   block_sider->data[i]=t;
                 }
@@ -186,12 +186,12 @@ void TeensyAudioTone::update(void)
                     t = 0;
                 }
                 if (block_inl) {
-                  block_sidel->data[i]=(t+block_inl->data[i]);
+                  block_sidel->data[i]=(t+(int32_t) block_inl->data[i]) >> 1;
                 } else {
                   block_sidel->data[i]=t;
                 }
                 if (block_inr) {
-                  block_sider->data[i]=(t+block_inr->data[i]);
+                  block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
                   block_sider->data[i]=t;
                 }
@@ -217,8 +217,22 @@ void TeensyAudioTone::update(void)
     } else {
 
         windowindex = tone = mute = 0;  // just in case we arrive here because of a failed allocation
-        if (block_inl) transmit(block_inl,0);
-        if (block_inr) transmit(block_inr,1);
+        //
+        // During keying, the "blending" of the RX and side tone is Out = (In + Side) / 2
+        // so the Out amplitude needs to be divided by 2 here as well.
+        //
+        if (block_inl) {
+          for (i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            block_inl->data[i] >>= 1;
+          }
+          transmit(block_inl,0);
+        }
+        if (block_inr) {
+          for (i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
+            block_inr->data[i] >>= 1;
+          }
+          transmit(block_inr,1);
+        }
     }
 
     if (block_sine) release(block_sine);
