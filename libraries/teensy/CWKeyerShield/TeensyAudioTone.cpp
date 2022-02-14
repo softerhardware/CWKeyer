@@ -168,12 +168,12 @@ void TeensyAudioTone::update(void)
                 if (block_inl) {
                   block_sidel->data[i]=(t+(int32_t)block_inl->data[i]) >> 1;
                 } else {
-                  block_sidel->data[i]=t;
+                  block_sidel->data[i]=t >> 1;
                 }
                 if (block_inr) {
                   block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
-                  block_sider->data[i]=t;
+                  block_sider->data[i]=t >> 1;
                 }
             }
         } else if (windowindex) {
@@ -188,12 +188,12 @@ void TeensyAudioTone::update(void)
                 if (block_inl) {
                   block_sidel->data[i]=(t+(int32_t) block_inl->data[i]) >> 1;
                 } else {
-                  block_sidel->data[i]=t;
+                  block_sidel->data[i]= t >> 1;
                 }
                 if (block_inr) {
                   block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
-                  block_sider->data[i]=t;
+                  block_sider->data[i]= t >> 1;
                 }
             }
         } else {
