@@ -124,6 +124,8 @@ class CWKeyerShield
 public:
     // User must be able to see good default values without referring to any other code, for example
     // there should be no need to look at TeensyWinkeyEmulator
+    // These settings reflect the hardware (wiring) of the keyer and thus cannot be
+    // changed at run-time. The default values used here correspond to the "CW Keyer" shield.
     CWKeyerShield (int i2s              = 1,
                    int pin_sidevol      = A2,
                    int pin_sidefreq     = A3,
@@ -131,10 +133,7 @@ public:
                    int pin_speed        = A8,
                    int pin_ptt_in       = 3,
                    int pin_ptt_out      = 4,
-                   int pin_cw_out       = 5,
-                   int midi_ptt_nt      = 18,
-                   int midi_keydown_nt  = 17,
-                   int midi_ch          = 10) :
+                   int pin_cw_out       = 5):
     sine(),
     usbaudioinput(),
     teensyaudiotone(),
@@ -151,10 +150,6 @@ public:
       Pin_PTTin             = pin_ptt_in;
       Pin_PTTout            = pin_ptt_out;
       Pin_CWout             = pin_cw_out;
-
-      midi_ptt_note = midi_ptt_nt;
-      midi_keydown_note = midi_keydown_nt;
-      midi_channel = midi_ch;
 
       //
       // Audio output. The audio output method is encoded in the i2s variable:
@@ -229,6 +224,8 @@ public:
 
     void set_cwptt_mute_option(int v)    { mute_on_cwptt = v; }
     void set_midi_channel(int v)         { midi_channel  = v; }
+    void set_ptt_note(int v)             { midi_ptt_note = v; }
+    void set_keydown_note(int v)         { midi_keydown_note = v; }
 
 private:
     void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
@@ -258,15 +255,19 @@ private:
 
     //
     // MIDI channel to use for communication with the controller
-    // *and* with the radio
+    // *and* with the radio. Can be changed via interface or via MIDI commands.
     // ATTN: the 16 midi channels are numbered 1-16 (not 0-15!),
     //   since this was designed for musicians not computer scientists.
     //   So a channel value of 0 means "no communication"
     //
-    uint8_t midi_channel;
+    uint8_t midi_channel = 10;
 
-    uint8_t midi_ptt_note;
-    uint8_t midi_keydown_note;
+    //
+    // Default note values for Key-Down and PTT. Can be changed via interface
+    // or via MIDI commands.
+    //
+    uint8_t midi_ptt_note = 18;
+    uint8_t midi_keydown_note = 17;
 
     // Enable/disable  that MICPTT/CWPTT triggers the hardware PTT output.
     // (both will trigger a MIDI message in either case)
