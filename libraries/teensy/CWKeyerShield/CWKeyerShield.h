@@ -47,9 +47,7 @@ void keyer_hang_set(int hang);      // set keyer PTT hang time (in *dotlengths*)
 // No. 88               (High-resolution velocity prefix)
 // No. 96, 97           (Increment/Decrement)
 // No. 120-127          (Channel mode messages)
-// 
-// Note that MIDI_KEYDOWN_NOTE and MIDI_PTT_NOTE can be processed as "controllers"
-// in the input section, but will be used as "notes" when emitted.
+//
 //
 
 enum midi_control_selection {
@@ -58,10 +56,6 @@ enum midi_control_selection {
     MIDI_NRPN_CC_LSB              = 98,
     MIDI_NRPN_VAL_MSB             = 6,
     MIDI_NRPN_VAL_LSB             = 38,
-
-    //TODO: Change this
-    MIDI_PTT_NOTE                 = 18,
-    MIDI_KEYDOWN_NOTE             = 17,
 
     MIDI_MASTER_VOLUME            = 7,      // set master volume
     MIDI_MASTER_BALANCE           = 8,      //TODO: stereo balance
@@ -93,12 +87,12 @@ enum midi_nrpn_values {
 };
 
 enum midi_nrpn_selection {
-    NRPN_NOTHING = 0,               // not a nrpn nrpn value, where a null pointer is needed
-    NRPN_ID_KEYER = 1,              // identify this keyer for the correspondent
-    NRPN_ID_VERSION = 2,            // identify this keyer version for the correspondent
-    NRPN_NNRPN = 3,                 // return how many NRPNs are allocated
-    NRPN_NRPN_QUERY = 4,            // take the value as a nrpn number and send that nrpns value, no response if no value set
-    NRPN_NRPN_UNSET = 5,             // take the value as a nrpn number and make that nrpn NRPNV_NOTSET
+    NRPN_NOTHING                       = 0,   // not a nrpn nrpn value, where a null pointer is needed
+    NRPN_ID_KEYER                      = 1,   // identify this keyer for the correspondent
+    NRPN_ID_VERSION                    = 2,   // identify this keyer version for the correspondent
+    NRPN_NNRPN                         = 3,   // return how many NRPNs are allocated
+    NRPN_NRPN_QUERY                    = 4,   // take the value as a nrpn number and send that nrpns value, no response if no value set
+    NRPN_NRPN_UNSET                    = 5,   // take the value as a nrpn number and make that nrpn NRPNV_NOTSET
     MIDI_NRPN_WM8960_ENABLE            = 11,
     MIDI_NRPN_WM8960_INPUT_LEVEL       = 12,
     MIDI_NRPN_WM8960_INPUT_SELECT      = 13,
@@ -114,9 +108,11 @@ enum midi_nrpn_selection {
     MIDI_NRPN_WM8960_LINEIN_POWER      = 23,
     MIDI_NRPN_WM8960_RAW_MASK          = 24,
     MIDI_NRPN_WM8960_RAW_DATA          = 25,
-    MIDI_NRPN_WM8960_RAW_WRITE         = 26
+    MIDI_NRPN_WM8960_RAW_WRITE         = 26,
+    MIDI_NRPN_KEYDOWN_NOTE             = 27,
+    MIDI_NRPN_PTT_NOTE                 = 28
 };
-  
+
 //
 // The hardware setup (digital and analog I/O lines, which audio system to use)
 // is passed as a parameter to the constructor.
@@ -126,14 +122,19 @@ enum midi_nrpn_selection {
 class CWKeyerShield
 {
 public:
-    CWKeyerShield (int i2s,
-                   int pin_sidevol,
-                   int pin_sidefreq,
-                   int pin_mastervol,
-                   int pin_speed,
-                   int pin_ptt_in,
-                   int pin_ptt_out,
-                   int pin_cw_out) :
+    // User must be able to see good default values without referring to any other code, for example
+    // there should be no need to look at TeensyWinkeyEmulator
+    CWKeyerShield (int i2s              = 1,
+                   int pin_sidevol      = A2,
+                   int pin_sidefreq     = A3,
+                   int pin_mastervol    = A1,
+                   int pin_speed        = A8,
+                   int pin_ptt_in       = 3,
+                   int pin_ptt_out      = 4,
+                   int pin_cw_out       = 5,
+                   int midi_ptt_nt      = 18,
+                   int midi_keydown_nt  = 17,
+                   int midi_ch          = 10) :
     sine(),
     usbaudioinput(),
     teensyaudiotone(),
@@ -141,7 +142,7 @@ public:
     patchinr (usbaudioinput,   1, teensyaudiotone, 1),
     patchwav (sine,            0, teensyaudiotone, 2)
     {
-      nrpn_init();		// because any of these could be aliases to nrpn values
+      nrpn_init();              // because any of these could be aliases to nrpn values
       Pin_SideToneFrequency = pin_sidefreq;
       Pin_SideToneVolume    = pin_sidevol;
       Pin_MasterVolume      = pin_mastervol;
@@ -150,6 +151,10 @@ public:
       Pin_PTTin             = pin_ptt_in;
       Pin_PTTout            = pin_ptt_out;
       Pin_CWout             = pin_cw_out;
+
+      midi_ptt_note = midi_ptt_nt;
+      midi_keydown_note = midi_keydown_nt;
+      midi_channel = midi_ch;
 
       //
       // Audio output. The audio output method is encoded in the i2s variable:
@@ -191,21 +196,21 @@ public:
     }
 
     int8_t ctrls[128];          // current values of controls
-    static const unsigned NNRPN = 128;	// number of NRPNs maintained
+    static const unsigned NNRPN = 128;  // number of NRPNs maintained
     int16_t nrpns[NNRPN];         // current values of NRPNs
     void nrpn_init(void) {
-	for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpns[nrpn] = NRPNV_NOTSET;
+        for (unsigned nrpn = 0; nrpn < NNRPN; nrpn += 1) nrpns[nrpn] = NRPNV_NOTSET;
     }
     void nrpn_set(const int16_t nrpn, const int16_t value);
     void nrpn_send(const int16_t nrpn) {
-	usbMIDI.beginNrpn(nrpn, midi_channel);
-	usbMIDI.sendNrpnValue(nrpns[nrpn], midi_channel);
+        usbMIDI.beginNrpn(nrpn, midi_channel);
+        usbMIDI.sendNrpnValue(nrpns[nrpn], midi_channel);
     }
     bool nrpn_is_valid(const int16_t nrpn) { // nrpn number is in range
-	return ((unsigned)nrpn) < NNRPN;
+        return ((unsigned)nrpn) < NNRPN;
     }
     bool nrpn_is_set(const int16_t nrpn) { // nrpn value has been set
-	return nrpn_is_valid(nrpn) && nrpns[nrpn] != NRPNV_NOTSET;
+        return nrpn_is_valid(nrpn) && nrpns[nrpn] != NRPNV_NOTSET;
     }
 
     void setup(void);                                           // to be executed once upon startup
@@ -258,7 +263,10 @@ private:
     //   since this was designed for musicians not computer scientists.
     //   So a channel value of 0 means "no communication"
     //
-    uint8_t midi_channel = 10;
+    uint8_t midi_channel;
+
+    uint8_t midi_ptt_note;
+    uint8_t midi_keydown_note;
 
     // Enable/disable  that MICPTT/CWPTT triggers the hardware PTT output.
     // (both will trigger a MIDI message in either case)
@@ -273,10 +281,8 @@ private:
     uint8_t hwptt_state=0;
     uint8_t midiptt_state=0;
 
-    // Enable/disable MIDI responses to controller
-    // NOTE: "key-down", "PTT", "side tone freq" and "CW speed"
-    //       messages are sent independently of this value.
-    uint8_t midi_controller_response     = 0;
+    // Enable/disable MIDI control change responses
+    uint8_t midi_controller_response     = 1;
 
     // Enable/disable POTS
     uint8_t enable_pots       = 1;
@@ -322,8 +328,6 @@ private:
     uint8_t       ptt_state = 0;            // PTT state
 
     // Accumulators for MIDI commands with multiple data
-    int16_t nrpn_cc = 0;
-    int16_t nrpn_val = 0;
     int16_t wm8960_raw_mask = -1;
     int16_t wm8960_raw_data = -1;
 

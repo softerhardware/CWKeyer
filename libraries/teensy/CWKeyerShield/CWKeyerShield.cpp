@@ -279,6 +279,17 @@ void CWKeyerShield::process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val)
         wm8960_raw_data = -1;
         break;
 
+    case MIDI_NRPN_KEYDOWN_NOTE:
+        // Use 128-255 to turn note off
+        midi_keydown_note = nrpn_val & 0x0ff;
+        break;
+
+    case MIDI_NRPN_PTT_NOTE:
+        // Use 128-255 to turn note off
+        midi_ptt_note = nrpn_val & 0x0ff;
+        break;
+
+
     default:
         break;
 
@@ -288,7 +299,7 @@ void CWKeyerShield::process_nrpn(const int16_t nrpn_cc, const int16_t nrpn_val)
 
 void CWKeyerShield::midi(void)
 {
-    uint cmd, data;
+    uint8_t data1, data2;
 
     //
     // "swallow" incoming MIDI messages on ANY channel,
@@ -297,29 +308,30 @@ void CWKeyerShield::midi(void)
     // sent on the "wrong" channel.
     //
     while (usbMIDI.read()) {
+        data1 = usbMIDI.getData1();
+        data2 = usbMIDI.getData2();
+
         if (usbMIDI.getType() == usbMIDI.ControlChange) {
-            cmd  = usbMIDI.getData1();
-            data = usbMIDI.getData2();
 
             //Serial.print("MIDI ");
             //Serial.print(usbMIDI.getChannel());
             //Serial.print(" ");
             //Serial.print(midi_channel);
             //Serial.print(" ");
-            //Serial.print(cmd);
+            //Serial.print(data1);
             //Serial.print(" ");
-            //Serial.println(data);
+            //Serial.println(data2);
 
 
             // Accept setting of control channel on any channel
-            if (cmd == MIDI_SET_CHANNEL) {
-                if (data > 16) data=0;
-                set_midi_channel(data);
+            if (data1 == MIDI_SET_CHANNEL) {
+                if (data2 > 16) data2=0;
+                set_midi_channel(data2);
             }
 
             if (usbMIDI.getChannel() == midi_channel) {
-		ctrls[cmd] = data; // ctrls[cmd] is the definitive value
-                switch(cmd) {
+                ctrls[data1] = data2; // ctrls[data1] is the definitive value
+                switch(data1) {
                     case MIDI_NRPN_CC_MSB: // ctrls[MIDI_NRPN_CC_MSB] is already set
                         break;
                     case MIDI_NRPN_CC_LSB: // ctrls[MIDI_NRPN_CC_LSB] is already set
@@ -327,83 +339,79 @@ void CWKeyerShield::midi(void)
                     case MIDI_NRPN_VAL_MSB: // ctrls[MIDI_NRPN_VAL_MSB] is already set
                         break;
                     case MIDI_NRPN_VAL_LSB: // Writing LSB value triggers NRPN call
-			nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
+                        nrpn_set((ctrls[MIDI_NRPN_CC_MSB]<<7)|ctrls[MIDI_NRPN_CC_LSB],
                              (ctrls[MIDI_NRPN_VAL_MSB]<<7)|ctrls[MIDI_NRPN_VAL_LSB]);
                         break;
 
                     case MIDI_MASTER_VOLUME:
-                        mastervolume(data);
+                        mastervolume(data2);
                         break;
 
                     case MIDI_SIDETONE_VOLUME:
-                        sidetonevolume(data);
+                        sidetonevolume(data2);
                         break;
 
                     case MIDI_SIDETONE_FREQUENCY:
-                        sidetonefrequency(data);
+                        sidetonefrequency(data2);
                         break;
 
                     case MIDI_CW_SPEED:
-                        if (data < 1) data=1;
-                        speed_set(data);  // report to keyer
-                        cwspeed(data);    // report to radio (and MIDI controller)
+                        if (data2 < 1) data2=1;
+                        speed_set(data2);  // report to keyer
+                        cwspeed(data2);    // report to radio (and MIDI controller)
                         break;
 
                     case MIDI_ENABLE_POTS:
-                        enable_pots = (data != 0);
+                        // Values greater than 63 are on in MIDI standards
+                        enable_pots = (data2 > 63);
                         break;
 
                     case MIDI_RESPONSE:
-                        midi_controller_response = (data != 0);
+                        midi_controller_response = (data2 > 63);
                         break;
 
                     case MIDI_KEYER_AUTOPTT:
-                        // auto-PTT by the keyer allowed(data!=0) or disabled (data==0)
-                        keyer_autoptt_set(data != 0);  // report to keyer
+                        // auto-PTT by the keyer allowed(data2!=0) or disabled (data2==0)
+                        keyer_autoptt_set(data2 > 63);  // report to keyer
                         break;
 
                     case MIDI_KEYER_LEADIN:
-                        // if keyer auto-PTT: lead-in is (10*data) milliseconds
-                        keyer_leadin_set(data); // report to keyer
+                        // if keyer auto-PTT: lead-in is (10*data2) milliseconds
+                        keyer_leadin_set(data2); // report to keyer
                         break;
 
                     case MIDI_KEYER_HANG:
-                        // if keyer auto-PTT: data=PTT hang time in *dot lengths*
-                        keyer_hang_set(data); // report to keyer
+                        // if keyer auto-PTT: data2=PTT hang time in *dot lengths*
+                        keyer_hang_set(data2); // report to keyer
                         break;
 
                     case MIDI_MUTE_CWPTT:
-                        mute_on_cwptt = (data != 0);
+                        mute_on_cwptt = (data2 > 63);
                         break;
 
                     case MIDI_MICPTT_HWPTT:
-                        micptt_hwptt = (data != 0);
+                        micptt_hwptt = (data2 > 63);
                         break;
 
                     case MIDI_CWPTT_HWPTT:
-                        cwptt_hwptt = (data != 0);
-                        break;
-
-                    case MIDI_KEYDOWN_NOTE:
-                        //
-                        // This is an incoming message from a controller.
-                        // It can be used to trigger Key-down, for example,
-                        // to implement a "Tune" button in the MIDI controller
-                        //
-                        key(data != 0);
-                        break;
-
-                    case MIDI_PTT_NOTE:
-                        //
-                        // This is an incoming message from a controller.
-                        // It can be used to trigger PTT
-                        //
-                        cwptt(data != 0);
+                        cwptt_hwptt = (data2 > 63);
                         break;
 
                     default:
                         break;
                 }
+            }
+        } else if (usbMIDI.getType() == usbMIDI.NoteOn) {
+            if (data1 == midi_keydown_note) {
+                key(data2 != 0);  // Not an on/off value, but velocity information
+            } else if (data1 == midi_ptt_note) {
+                cwptt(data2 != 0);
+            }
+        } else if (usbMIDI.getType() == usbMIDI.NoteOff) {
+            if (data1 == midi_keydown_note) {
+                key(0);  // Ignoring velocity information
+            } else if (data1 == midi_ptt_note) {
+                cwptt(0);
             }
         }
     }
@@ -414,30 +422,30 @@ void CWKeyerShield::nrpn_set(const int16_t nrpn, const int16_t value) {
     nrpns[nrpn] = value;
     switch (nrpn) {
     case NRPN_ID_KEYER:
-	nrpns[nrpn] = NRPNV_ID_KEYER; // correct nrpn value
-	nrpn_send(nrpn);
-	break;
-    case NRPN_ID_VERSION: 
-	nrpns[nrpn] = NRPNV_ID_VERSION; // correct nrpn value
-	nrpn_send(nrpn);
-	break;
+        nrpns[nrpn] = NRPNV_ID_KEYER; // correct nrpn value
+        nrpn_send(nrpn);
+        break;
+    case NRPN_ID_VERSION:
+        nrpns[nrpn] = NRPNV_ID_VERSION; // correct nrpn value
+        nrpn_send(nrpn);
+        break;
     case NRPN_NNRPN:
-	nrpns[nrpn] = NNRPN; // correct nrpn value
-	nrpn_send(nrpn);
-	break;
+        nrpns[nrpn] = NNRPN; // correct nrpn value
+        nrpn_send(nrpn);
+        break;
     case NRPN_NRPN_QUERY:
-	if ( ! nrpn_is_valid(value)) return;
-	if ( ! nrpn_is_set(value)) return;
-	nrpn_send(value);
-	break;
+        if ( ! nrpn_is_valid(value)) return;
+        if ( ! nrpn_is_set(value)) return;
+        nrpn_send(value);
+        break;
     case NRPN_NRPN_UNSET:
-	if ( ! nrpn_is_valid(value)) return;
-	nrpns[value] = NRPNV_NOTSET;
-	break;
+        if ( ! nrpn_is_valid(value)) return;
+        nrpns[value] = NRPNV_NOTSET;
+        break;
 
-    default: 
-	process_nrpn(nrpn, value);
-	break;
+    default:
+        process_nrpn(nrpn, value);
+        break;
    }
 }
 
@@ -542,8 +550,8 @@ void CWKeyerShield::midiptt(int state)
     //
     // send MIDI PTT message to radio
     //
-    if (midi_channel > 0) {
-        usbMIDI.sendNoteOn(MIDI_PTT_NOTE, state ? 127 : 0, midi_channel);
+    if ((midi_channel > 0) && (midi_ptt_note < 128)) {
+        usbMIDI.sendNoteOn(midi_ptt_note, state ? 127 : 0, midi_channel);
     }
 }
 
@@ -557,8 +565,8 @@ void CWKeyerShield::key(int state)
     // c) set hardware line
     //
     teensyaudiotone.setTone(state);
-    if (midi_channel > 0) {
-        usbMIDI.sendNoteOn(MIDI_KEYDOWN_NOTE, state ? 127 : 0, midi_channel);
+    if ((midi_channel > 0) && (midi_keydown_note < 128)) {
+        usbMIDI.sendNoteOn(midi_keydown_note, state ? 127 : 0, midi_channel);
         usbMIDI.send_now();
     }
     if (Pin_CWout >= 0) {
@@ -584,7 +592,6 @@ void CWKeyerShield::cwptt(int state)
 
 void CWKeyerShield::mastervolume(uint8_t level)  // input level from 0 ... 127
 {
-    level &= 0x7f; // paranoia
     if (midi_controller_response && midi_channel > 0) {
         usbMIDI.sendControlChange(MIDI_MASTER_VOLUME, level, midi_channel);
     }
@@ -593,7 +600,6 @@ void CWKeyerShield::mastervolume(uint8_t level)  // input level from 0 ... 127
 
 void CWKeyerShield::sidetonevolume(uint8_t level)    // input level from 0 ... 127
 {
-    level &= 0x7F; // paranoia
     //
     // The input value (level) is in the range 0-31 and converted to
     // an amplitude using VolTab, such that a logarithmic pot is
@@ -608,20 +614,19 @@ void CWKeyerShield::sidetonevolume(uint8_t level)    // input level from 0 ... 1
 
 void CWKeyerShield::sidetonefrequency(uint8_t freq)   // input freq from 0 ... 127, maps to 0 ... 1270 Hz
 {
-    freq &= 0x7F; // paranoia
     sine.frequency( (float)(10*freq) );
 
-    if (midi_channel > 0) {
+    // Code provides a unified on/off switch for control change responses, there is no distinction between controller and SDR
+    if (midi_controller_response && midi_channel > 0) {
         usbMIDI.sendControlChange(MIDI_SIDETONE_FREQUENCY, freq, midi_channel);
     }
 }
 
 void CWKeyerShield::cwspeed(uint8_t speed)   // input speed from 0 ... 127
 {
-    speed &= 0x7F;              // paranoia
     if (speed == 0) speed = 1;  // even more paranoia
 
-    if (midi_channel> 0) {
+    if (midi_controller_response && midi_channel> 0) {
         usbMIDI.sendControlChange(MIDI_CW_SPEED, speed, midi_channel);
     }
  }
