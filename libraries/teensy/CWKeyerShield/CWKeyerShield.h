@@ -132,9 +132,11 @@ public:
                    int pin_ptt_in       = 3,
                    int pin_ptt_out      = 4,
                    int pin_cw_out       = 5,
-                   int midi_ptt_nt      = 18,
+                   // Below values can be changed later by accessors
+                   int midi_ch          = 10,
                    int midi_keydown_nt  = 17,
-                   int midi_ch          = 10) :
+                   int midi_ptt_nt      = 18)
+                   :
     sine(),
     usbaudioinput(),
     teensyaudiotone(),
@@ -228,7 +230,16 @@ public:
     }
 
     void set_cwptt_mute_option(int v)    { mute_on_cwptt = v; }
-    void set_midi_channel(int v)         { midi_channel  = v; }
+
+    void set_midi_channel(int v)         { midi_channel = v; }
+    int  get_midi_channel(void)          { return midi_channel; }
+
+    void set_midi_ptt_note(int v)        { midi_ptt_note = v; }
+    int  get_midi_ptt_note(void)         { return midi_ptt_note; }
+
+    void set_midi_keydown_note(int v)    { midi_keydown_note = v; }
+    int  get_midi_keydown_note(void)     { return midi_keydown_note; }
+
 
 private:
     void monitor_ptt(void);                                     // monitor PTT-in line, do PTT
