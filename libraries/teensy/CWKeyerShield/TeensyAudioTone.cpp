@@ -165,12 +165,12 @@ void TeensyAudioTone::update(void)
                 } else {
                     t = block_sine->data[i];
                 }
-                if (block_inl) {
+                if (block_inl && !mute) {
                   block_sidel->data[i]=(t+(int32_t)block_inl->data[i]) >> 1;
                 } else {
                   block_sidel->data[i]=t >> 1;
                 }
-                if (block_inr) {
+                if (block_inr && !mute) {
                   block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
                   block_sider->data[i]=t >> 1;
@@ -185,12 +185,12 @@ void TeensyAudioTone::update(void)
                 } else {
                     t = 0;
                 }
-                if (block_inl) {
+                if (block_inl && !mute) {
                   block_sidel->data[i]=(t+(int32_t) block_inl->data[i]) >> 1;
                 } else {
                   block_sidel->data[i]= t >> 1;
                 }
-                if (block_inr) {
+                if (block_inr && !mute) {
                   block_sider->data[i]=(t+(int32_t)block_inr->data[i]) >> 1;
                 } else {
                   block_sider->data[i]= t >> 1;
