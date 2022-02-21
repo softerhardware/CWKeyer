@@ -1,33 +1,30 @@
-# CW Keyer for Teensy 4 and Hermes-Lite
+# CW Keyer for the Hermes-Lite and other SDR software
 
-This is a software CW keyer for the [Teensy 4](https://www.pjrc.com/teensy/). The keyer is also a USB audio device. This allows for low latency CW sidetone to be mixed in with received audio from a [Hermes-Lite 2.0](http://www.hermeslite.com/) amateur softwareware defined radio or other radio. This project is currently a DIY project with instructions below for those who feel comfortable with some light soldering and Arduino programming.
+This project is a CW keyer for amateur radio. The hardware connects to a PC with USB. It then appears as an audio device for radio sound output and microphone input. It is also a Midi device to signal key up/down to the PC software, and a serial device for a connection to logging or other software on the PC. It is designed for the [Hermes-Lite 2.0](http://www.hermeslite.com/) or other SDR software. The radio sound is sent to the keyer and the keyer generates a sidetone, mixes it with the audio and sends it to the headphones or speaker. The sidetone has zero delay and is suitable for high speed CW. The keyer can also be used with a regular analog radio by using the key and PTT outputs. This project is currently a DIY project with instructions below for those who feel comfortable with some light soldering and Arduino programming.
 
 ## Hardware
 
-A [Teensy 4](https://www.pjrc.com/store/teensy40.html) This can be purchased from the previous links or from [sparkfun](https://www.sparkfun.com/), [adafruit](https://www.adafruit.com/), [mouser](https://www.mouser.com/), [digikey](https://www.digikey.com/) or [amazon](https://www.amazon.com/). Make sure to order the Teensy 4.
-
-The SofterHardware CW Keyer Teensy 4.0 carrier board as shown below is also required.
+The hardware consists of a carrier board as shown below and a [Teensy 4](https://www.pjrc.com/teensy/) microcontroller.
+The Teensy can be purchased from [Teensy](https://www.pjrc.com/store/teensy40.html) or from [sparkfun](https://www.sparkfun.com/), [adafruit](https://www.adafruit.com/), [mouser](https://www.mouser.com/), [digikey](https://www.digikey.com/) or [amazon](https://www.amazon.com/). Make sure to order the Teensy 4.
 
 ![SofterHardwareCWKeyer](./pictures/softerhardware_cwkeyer.jpg)
 
+## Software
 
-## Programming the Teensy 4
-
-The Teensy 4 is programmed via a usb connection to a host computer. Precompiled Teensy 4 firmware (.hex) files are available for download. First, download and install the Teensy loader application for your operating system as described on [this page](https://www.pjrc.com/teensy/loader.html). Next, download the latest target firmware:
-
- * [TeensyWinkeyEmulator .hex](./releases/20220109/TeensyWinkeyEmulator.ino.hex)
- * [hasak .hex](./releases/hasak_20210419.hex)
+Keyer software must be loaded into the Teensy 4 microcontroller. The Teensy 4 is programmed via a usb connection to a host computer. First, download and install the Teensy loader application for your operating system as described on [this page](https://www.pjrc.com/teensy/loader.html). Then start the teensy application. Press the programming button on the Teensy and the teensy app will change to show a picture of the board. Then select the ".hex" program file, select "program" and then "reboot".
 
 
-Finally, complete the instructions for your operating systems but use the downloaded .hex file from above instead of the example .hex file.
+There are currently two keyer programs available, the [hasak](./firmware/hasak/hasak.TEENSY40@600.hex) and the [TeensyWinkeyEmulator](./firmware/TeensyWinkeyEmulator/TeensyWinkeyEmulator.ino.TEENSY40.hex). Right click one or the other, select "Save link as" and download the hex file. Use it to program the Teensy.
+
 
 ## Ctrlr
 
 TBD: Basic description, download and use instructions for Ctrlr MIDI control panel.
 
-## Development
+## Software Development
 
-This git repository uses several submodules to collect various projects into a single repository. You must initialize submodules whenn intially cloning:
+To write your own keyer software or to contribute to software development first clone this repository.
+This git repository uses several submodules to collect various projects into a single repository. You must initialize submodules when intially cloning:
 
 git clone --recurse-submodules git@github.com:softerhardware/CWKeyer.git
 
@@ -37,9 +34,9 @@ git pull --recurse-submodules
 
 You can find more details about how to work with git submodules on the internet.
 
-### Teeny Libraries
+### Teensy Libraries
 
-Current development is done using [Arduino IDE 1.8.19](https://www.arduino.cc/en/software) and [Teensyduino 1.56](https://www.pjrc.com/teensy/td_download.html). Please make sure those are installe.
+Current development is done using [Arduino IDE 1.8.19](https://www.arduino.cc/en/software) and [Teensyduino 1.56](https://www.pjrc.com/teensy/td_download.html). Please make sure those are installed.
 
 Updated libraries are required for glitchless 48kHz audio with the CW keyer hardware. These libraries are provided in this git repository. An easy way to use these libraries is to add symbolic links to the new libraries from the arduino IDE install. This is described below for Linux and MacOS systems.
 
