@@ -14,7 +14,7 @@ The Teensy can be purchased from [Teensy](https://www.pjrc.com/store/teensy40.ht
 Keyer software must be loaded into the Teensy 4 microcontroller. The Teensy 4 is programmed via a usb connection to a host computer. First, download and install the Teensy loader application for your operating system as described on [this page](https://www.pjrc.com/teensy/loader.html). Then start the teensy application. Press the programming button on the Teensy and the teensy app will change to show a picture of the board. Then select the ".hex" program file, select "program" and then "reboot".
 
 
-There are currently two keyer programs available, the [hasak](./firmware/hasak/hasak.TEENSY40@600.hex) and the [TeensyWinkeyEmulator](./firmware/TeensyWinkeyEmulator/TeensyWinkeyEmulator.ino.TEENSY40.hex). Right click one or the other, select "Save link as" and download the hex file. Use it to program the Teensy.
+There are currently two keyer programs available, the "hasak" and the "TeensyWinkeyEmulator". Click on the "firmware" link above, and click through the directories until you find the hex file you want. The file will appear as a table of numbers with a "Raw" button on the upper right side. Right click the Raw button and select "Save link as". Make sure the file name ends in ".hex". Save the hex file and use it to program the Teensy.
 
 
 ## Ctrlr
