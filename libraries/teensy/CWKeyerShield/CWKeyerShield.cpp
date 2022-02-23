@@ -43,8 +43,14 @@ void CWKeyerShield::setup(void)
     if (Pin_Speed             >= 0) pinMode(Pin_Speed,             INPUT);
 
     if (Pin_PTTin             >= 0) pinMode(Pin_PTTin,             INPUT_PULLUP);
-    if (Pin_PTTout            >= 0) pinMode(Pin_PTTout,            OUTPUT);
-    if (Pin_CWout             >= 0) pinMode(Pin_CWout,             OUTPUT);
+    if (Pin_PTTout            >= 0) {
+      pinMode(Pin_PTTout,            OUTPUT);
+      digitalWrite(Pin_PTTout, 0);
+    }
+    if (Pin_CWout             >= 0) {
+      pinMode(Pin_CWout,             OUTPUT);
+      digitalWrite(Pin_CWout, 0);
+    }
 
     //
     // The following settings will probably very soon be overwritten,
@@ -52,8 +58,8 @@ void CWKeyerShield::setup(void)
     //
 
     sine.frequency(800.0F);
-    sidetonelevel_target=0.2F;
-    sidetonelevel_actual=0.2F;
+    sidetonelevel_target=0.4F;
+    sidetonelevel_actual=0.4F;
     sine.amplitude(sidetonelevel_actual);
 
     masterlevel_actual=0.8F;
