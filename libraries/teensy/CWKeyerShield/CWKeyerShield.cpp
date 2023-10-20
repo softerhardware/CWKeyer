@@ -68,11 +68,19 @@ void CWKeyerShield::setup(void)
       wm8960->enable();
       wm8960->volume(masterlevel_actual);
       wm8960->inputSelect(0);             // select and activate microphone input
-      wm8960->inputLevel(0.1F, 0.1F);     // volume control for mic input (both mic and MEMS)
+      wm8960->enableMicBias(1);
+      wm8960->inputLevel(0.5F, 0.5F);     // volume control for mic input (both mic and MEMS)
     }
     if (sgtl5000) {
       sgtl5000->enable();
       sgtl5000->volume(masterlevel_actual);
+      // Note that this sets the Mic Bias voltage to 3.0 Volt and the Mic Bias
+      // output impedance to 2 kOhm, and this is "hard-wired" into control_sgtl5000
+      // in the audio library.
+      sgtl5000->inputSelect(AUDIO_INPUT_MIC);
+      // The default microphone setting is 52 dB (40 dB preamp and 12 dB line-gain),
+      // the correct value depends on the microphone but here we use some 12 dB less
+      sgtl5000->micGain(40);
     }
 
     AudioInterrupts();
