@@ -187,8 +187,10 @@ public:
       //
       // Connect teensyaudiotone to audio output
       //
-      patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
-      patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
+      if (audioout) {
+        patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
+        patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
+      }
       if (audioin) {
         //
         // Connect I2S audio input to USB audio out
