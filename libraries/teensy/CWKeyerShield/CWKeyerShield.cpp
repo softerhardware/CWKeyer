@@ -67,7 +67,7 @@ void CWKeyerShield::setup(void)
     if (wm8960) {
       wm8960->enable();
       wm8960->volume(masterlevel_actual);
-      wm8960->inputSelect(0);             // select and activate microphone input
+      wm8960->inputSelect(0);               // 0 = Mic, 1 = LineIn
       wm8960->enableMicBias(1);
       //
       // DL1YCF comment start
@@ -97,12 +97,28 @@ void CWKeyerShield::setup(void)
       //
       // so with a value of the input level between 0.0 and 1.0, one can cover the whole
       // range from dynamic microphones to line levels (these may occur if using an
-      // external microphone pre-amp)
+      // external microphone pre-amp). A resonable default seems to be 0.5, but if you
+      // either connect a dynamic microphone or a line level source you either need
+      // to re-compile your KeyerShield firmware or use MIDI comands top re-adjust the level.
+      //
+      // Whereas the microphone jack only connects to the left audio channel, the
+      // signal of the built-in MEMS microphone goes to the right audio channel. My
+      // preliminary experiments indicate that a "level" value of about 0.6 is just fine
+      // here, since I do not expect people are holding the KeyerShield in their hands
+      // and place it just before their mouth!
+      //
+      // An API in which one can switch between MEMS and MIC such that the chosen signal
+      // (occurs on both channels) my be preferred, but then you need to adapt
+      // control_wm8960.cpp in the Audio library. This applies in particular when using
+      // the Mic input signal, in this case one certainly does not want MEMS signals.
+      //
+      // Perhaps one should implement a possibility to "switch" between the left and right
+      // channel in the sense that the "chosen" signal occurs in both channels.
       //
       // DL1YCF comment end
       // ==================
       //
-      wm8960->inputLevel(0.5F, 0.5F);     // volume control for mic input (both mic and MEMS)
+      wm8960->inputLevel(0.5F, 0.6F);     // volume control for mic input (both mic and MEMS)
     }
     if (sgtl5000) {
       sgtl5000->enable();
