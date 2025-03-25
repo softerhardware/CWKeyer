@@ -69,6 +69,39 @@ void CWKeyerShield::setup(void)
       wm8960->volume(masterlevel_actual);
       wm8960->inputSelect(0);             // select and activate microphone input
       wm8960->enableMicBias(1);
+      //
+      // DL1YCF comment start
+      // ====================
+      //
+      // Note the level scale is logarithmic. For the mic input jack (left channel)
+      // I have measured the input voltage corresponding to full scale input
+      // (beyond that, clipping sets in)
+      //
+      //   Level       Vpp (mV)    Vrms(mV)  dBV
+      //   -------------------------------------
+      //    0.0         850         300      - 9
+      //    0.3         160          57      -25
+      //    0.4          95          34      -29
+      //    0.5          50          18      -35
+      //    0.6          31          11      -39
+      //    0.7          17           6      -44
+      //
+      // so the empirical formula for a full-scale signal (in dBV) is
+      // dBV = -10 -50*level
+      //
+      // Typical input levels are
+      //
+      // Dynamic Microphone : Vpp =    5 mV,  -55 dBV  ==> Level = 0.9
+      // Electret Microphone: Vpp =   50 mV,  -35 dBV  ==> Level = 0.5
+      // Line level:          Vpp =  900 mV   -10 dBV  ==> Level = 0.0
+      //
+      // so with a value of the input level between 0.0 and 1.0, one can cover the whole
+      // range from dynamic microphones to line levels (these may occur if using an
+      // external microphone pre-amp)
+      //
+      // DL1YCF comment end
+      // ==================
+      //
       wm8960->inputLevel(0.5F, 0.5F);     // volume control for mic input (both mic and MEMS)
     }
     if (sgtl5000) {
