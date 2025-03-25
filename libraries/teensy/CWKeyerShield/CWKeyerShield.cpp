@@ -67,12 +67,69 @@ void CWKeyerShield::setup(void)
     if (wm8960) {
       wm8960->enable();
       wm8960->volume(masterlevel_actual);
-      wm8960->inputSelect(0);             // select and activate microphone input
-      wm8960->inputLevel(0.1F, 0.1F);     // volume control for mic input (both mic and MEMS)
+      wm8960->inputSelect(0);               // 0 = Mic, 1 = LineIn
+      wm8960->enableMicBias(1);
+      //
+      // DL1YCF comment start
+      // ====================
+      //
+      // Note the level scale is logarithmic. For the mic input jack (left channel)
+      // I have measured the input voltage corresponding to full scale input
+      // (beyond that, clipping sets in)
+      //
+      //   Level       Vpp (mV)    Vrms(mV)  dBV
+      //   -------------------------------------
+      //    0.0         850         300      - 9
+      //    0.3         160          57      -25
+      //    0.4          95          34      -29
+      //    0.5          50          18      -35
+      //    0.6          31          11      -39
+      //    0.7          17           6      -44
+      //
+      // so the empirical formula for a full-scale signal (in dBV) is
+      // dBV = -10 -50*level
+      //
+      // Typical input levels are
+      //
+      // Dynamic Microphone : Vpp =    5 mV,  -55 dBV  ==> Level = 0.9
+      // Electret Microphone: Vpp =   50 mV,  -35 dBV  ==> Level = 0.5
+      // Line level:          Vpp =  900 mV   -10 dBV  ==> Level = 0.0
+      //
+      // so with a value of the input level between 0.0 and 1.0, one can cover the whole
+      // range from dynamic microphones to line levels (these may occur if using an
+      // external microphone pre-amp). A resonable default seems to be 0.5, but if you
+      // either connect a dynamic microphone or a line level source you either need
+      // to re-compile your KeyerShield firmware or use MIDI comands top re-adjust the level.
+      //
+      // Whereas the microphone jack only connects to the left audio channel, the
+      // signal of the built-in MEMS microphone goes to the right audio channel. My
+      // preliminary experiments indicate that a "level" value of about 0.6 is just fine
+      // here, since I do not expect people are holding the KeyerShield in their hands
+      // and place it just before their mouth!
+      //
+      // An API in which one can switch between MEMS and MIC such that the chosen signal
+      // (occurs on both channels) my be preferred, but then you need to adapt
+      // control_wm8960.cpp in the Audio library. This applies in particular when using
+      // the Mic input signal, in this case one certainly does not want MEMS signals.
+      //
+      // Perhaps one should implement a possibility to "switch" between the left and right
+      // channel in the sense that the "chosen" signal occurs in both channels.
+      //
+      // DL1YCF comment end
+      // ==================
+      //
+      wm8960->inputLevel(0.5F, 0.6F);     // volume control for mic input (both mic and MEMS)
     }
     if (sgtl5000) {
       sgtl5000->enable();
       sgtl5000->volume(masterlevel_actual);
+      // Note that this sets the Mic Bias voltage to 3.0 Volt and the Mic Bias
+      // output impedance to 2 kOhm, and this is "hard-wired" into control_sgtl5000
+      // in the audio library.
+      sgtl5000->inputSelect(AUDIO_INPUT_MIC);
+      // The default microphone setting is 52 dB (40 dB preamp and 12 dB line-gain),
+      // the correct value depends on the microphone but here we use some 12 dB less
+      sgtl5000->micGain(40);
     }
 
     AudioInterrupts();

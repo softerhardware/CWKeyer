@@ -166,6 +166,7 @@ public:
       // i2s = 2:       I2S audio output, assuming a SGTL5100 device
       //
       // use MQS as the default if an illegal value has been given
+      // (no audio input in this case)
       //
       switch (i2s) {
         case 0:
@@ -186,8 +187,10 @@ public:
       //
       // Connect teensyaudiotone to audio output
       //
-      patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
-      patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
+      if (audioout) {
+        patchoutl = new AudioConnection(teensyaudiotone, 0, *audioout,        0);
+        patchoutr = new AudioConnection(teensyaudiotone, 1, *audioout,        1);
+      }
       if (audioin) {
         //
         // Connect I2S audio input to USB audio out
